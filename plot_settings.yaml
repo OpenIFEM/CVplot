@@ -1,0 +1,17 @@
+# No turbulence model
+# opening and closure from volume flow
+# open phase: 0.065
+
+# close phase: 0.876
+
+# output directory: ./figures1
+# turbulence model
+time span: 
+  - 0.1326
+  - 0.1370
+
+open phase: 0.065
+
+close phase: 0.876
+
+output directory: ./figures2
