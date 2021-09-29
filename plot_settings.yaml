@@ -1,17 +1,24 @@
 # No turbulence model
 # opening and closure from volume flow
-# open phase: 0.065
-
-# close phase: 0.876
-
-# output directory: ./figures1
 # turbulence model
-time span: 
-  - 0.1326
-  - 0.1370
+time span: [0.1430, 0.1480]
 
 open phase: 0.065
 
 close phase: 0.876
 
-output directory: ./figures2
+output directory: figures
+
+legend: false
+
+energy:
+  - Rate KE
+  - -KE efflux
+  - Rate dissipation
+  - Rate compression work
+  - Rate friction work
+  - Pressure drive
+  - Rate VF work
+  - Stabilization
+  - Rate turbulent momentum transfer
+  - ylim: [-0.15, 0.15]
