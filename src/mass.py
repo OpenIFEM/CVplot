@@ -1,9 +1,9 @@
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import pandas as pd
-import sys
-import yaml
+from meta_data import CVMetaData
 
 from smooth import *
 
@@ -16,36 +16,18 @@ to_pa = 1e-1  # Convert from dyne/cm^2 to Pascal
 to_watt = 1e-7  # Convert from erg/s to Watt
 to_kg = 1e-3  # Convert from g to kg
 
-# Read config file
-open_glottis = [0.0, 1.0]
-output_dir = str()
-with open("./plot_settings.yaml") as plot_configs:
-    documents = yaml.full_load(plot_configs)
-    open_glottis[0] = documents["open phase"]
-    open_glottis[1] = documents["close phase"]
-    output_dir = documents["output directory"]
-
-    for item, doc in documents.items():
-        print(item, ":", doc)
-
-if len(sys.argv) > 1:
-    filename = sys.argv[1]
-else:
-    filename = "./control_volume_analysis.csv"
-
+meta_data = CVMetaData(sys.argv)
+documents = meta_data.documents
 # Read CV data file
-cv_data = pd.read_csv(filename, header=0)
+cv_data = pd.read_csv(meta_data.filename, header=0)
 
 # Time
 time = cv_data["Time"]
 # Time span
-# timespan = [0.1458, 0.1502]  # for power, 1.0kPa
-timespan = [0.1678, 0.1722]  # for power, 1.0kPa
-n_period = 1.0
-normalized_timespan = [0.0, n_period]
-time_to_plot = timespan[1] - timespan[0]
-T_cycle = time_to_plot/n_period
-cv_data["Normalized time"] = (cv_data["Time"] - timespan[0])/T_cycle
+normalized_timespan = [0.0, meta_data.n_period]
+time_to_plot = meta_data.timespan[1] - meta_data.timespan[0]
+T_cycle = time_to_plot/meta_data.n_period
+cv_data["Normalized time"] = (cv_data["Time"] - meta_data.timespan[0])/T_cycle
 
 
 def create_mass_frame(cv_data):
@@ -117,11 +99,10 @@ def apply_fig_settings(fig):
 
 
 def draw_open_close(fig):
-    # open_glottis = [0.078, 0.895]
     fig.set_ylim(fig.get_ylim())
-    plt.plot([open_glottis[0], open_glottis[0]],
+    plt.plot([meta_data.open_glottis[0], meta_data.open_glottis[0]],
              fig.get_ylim(), 'r--', linewidth=4)
-    plt.plot([open_glottis[1], open_glottis[1]],
+    plt.plot([meta_data.open_glottis[1], meta_data.open_glottis[1]],
              fig.get_ylim(), 'r--', linewidth=4)
     # plt.plot(fig.get_xlim(), [gap_mass_flow_nonzero_res,
     #                           gap_mass_flow_nonzero_res], 'k--', linewidth=2)
@@ -142,7 +123,7 @@ draw_open_close(fig_10)
 # Save the plot
 plt.tight_layout()
 # plt.savefig("./figures/10-vf.png", format='png')
-plt.savefig(output_dir + "/10.png", format='png')
+plt.savefig(meta_data.output_dir + "/10.png", format='png')
 
 fig_8b = cv_mass.plot(
     x="Normalized time",
@@ -172,5 +153,5 @@ class OOMFormatter(ticker.ScalarFormatter):
 fig_8b.yaxis.set_major_formatter(OOMFormatter(order=-3))
 # Save the plot
 plt.tight_layout()
-plt.savefig(output_dir + "/glottal_flow.png", format='png')
+plt.savefig(meta_data.output_dir + "/glottal_flow.png", format='png')
 plt.show()

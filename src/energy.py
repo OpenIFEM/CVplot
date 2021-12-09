@@ -1,12 +1,10 @@
 import sys
-import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-import os
 import pandas as pd
 from tabulate import tabulate
-import yaml
+from meta_data import CVMetaData
 
 from smooth import *
 
@@ -18,44 +16,18 @@ to_newton = 1e-5  # Convert from dyne to Newton
 to_pa = 1e-1  # Convert from dyne/cm^2 to Pascal
 to_watt = 1e-7  # Convert from erg/s to Watt
 
-# Read the data
-if len(sys.argv) > 1:
-    filename = sys.argv[1]
-else:
-    filename = "./control_volume_analysis.csv"
-
-# Read config file
-open_glottis = [0.0, 1.0]
-output_dir = str()
-working_dir = str()
-if len(sys.argv) > 2:
-    config_filename = sys.argv[2]
-else:
-    config_filename = filename.replace(
-        "control_volume_analysis.csv", "plot_settings.yaml")
-    working_dir = os.path.dirname(filename)
-    print(working_dir)
-with open(config_filename) as plot_configs:
-    documents = yaml.full_load(plot_configs)
-    open_glottis[0] = documents["open phase"]
-    open_glottis[1] = documents["close phase"]
-    output_dir = os.path.join(working_dir, documents["output directory"])
-    timespan = documents["time span"]
-
-    for item, doc in documents.items():
-        print(item, ":", doc)
-
+meta_data = CVMetaData(sys.argv)
+documents = meta_data.documents
 # Read CV data file
-cv_data = pd.read_csv(filename, header=0)
+cv_data = pd.read_csv(meta_data.filename, header=0)
 
 # Time
 time = cv_data["Time"]
 # Time span
-n_period = 1.0
-normalized_timespan = [0, 1]
-time_to_plot = timespan[1] - timespan[0]
-T_cycle = time_to_plot/n_period
-cv_data["Normalized time"] = (cv_data["Time"] - timespan[0])/T_cycle
+normalized_timespan = [0, meta_data.n_period]
+time_to_plot = meta_data.timespan[1] - meta_data.timespan[0]
+T_cycle = time_to_plot/meta_data.n_period
+cv_data["Normalized time"] = (cv_data["Time"] - meta_data.timespan[0])/T_cycle
 
 
 def create_energy_frame(cv_data):
@@ -145,13 +117,14 @@ def apply_fig_settings(fig):
 
 def draw_open_close(fig):
     fig.set_ylim(fig.get_ylim())
+    # Use ylim in plot settings if given
     if ("ylim" in item for item in documents["energy"]):
         ylim = next(d for i, d in enumerate(
             documents["energy"]) if "ylim" in d)
         fig.set_ylim(ylim["ylim"])
-    plt.plot([open_glottis[0], open_glottis[0]],
+    plt.plot([meta_data.open_glottis[0], meta_data.open_glottis[0]],
              fig.get_ylim(), 'r--', linewidth=4)
-    plt.plot([open_glottis[1], open_glottis[1]],
+    plt.plot([meta_data.open_glottis[1], meta_data.open_glottis[1]],
              fig.get_ylim(), 'r--', linewidth=4)
 
 
@@ -188,7 +161,7 @@ apply_fig_settings(fig_12a)
 draw_open_close(fig_12a)
 update_xlabels(fig_12a)
 plt.tight_layout()
-plt.savefig(output_dir + "/12a.png", format='png')
+plt.savefig(meta_data.output_dir + "/12a.png", format='png')
 
 # Fig 12b: W_f, W_c, W_v
 fig_12b_names, fig_12b_styles, fig_12b_colors = [], [], []
@@ -201,7 +174,7 @@ draw_open_close(fig_12b)
 update_xlabels(fig_12b)
 # Save the plot
 plt.tight_layout()
-plt.savefig(output_dir + "/12b.png", format='png')
+plt.savefig(meta_data.output_dir + "/12b.png", format='png')
 plt.show()
 
 # Output the budget
