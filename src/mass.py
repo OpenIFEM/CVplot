@@ -59,10 +59,21 @@ def create_mass_frame(cv_data):
 
 cv_mass = create_mass_frame(cv_data)
 
-smooth(cv_mass, "Inlet mass flow", "Inlet mass flow", 100)
-smooth(cv_mass, "Outlet mass flow", "Outlet mass flow", 100)
-smooth(cv_mass, "Gap mass flow", "Gap mass flow", 100)
-smooth(cv_mass, "Mass change rate", "Mass change rate", 100)
+# smooth
+smooth_start_index = 0
+smooth_end_index = 0
+smooth_range = 100
+for index in range(len(cv_data["Normalized time"])):
+    if cv_data["Normalized time"][index] < 0:
+        smooth_start_index = index
+    if cv_data["Normalized time"][index] < meta_data.n_period:
+        smooth_end_index = index
+
+print(f"Smooth data in [{smooth_start_index} {smooth_end_index}] range...")
+for label, content in cv_mass.items():
+    if label != "Time" and label != "Normalized time":
+        direct_smooth(cv_mass, label, label, 100, [
+                      smooth_start_index, smooth_end_index])
 
 # Compute maximum gap mass flow
 # max_gap_mass_flow = max(cv_mass["Gap mass flow"].to_numpy())

@@ -29,12 +29,13 @@ def smooth(input, input_name, output_name, sample_range):
                          + 1/280 * filtered_input_sum[i-4])/5e-7
     input[output_name] = output
 
-def direct_smooth(input, input_name, output_name, sample_range):
+
+def direct_smooth(input, input_name, output_name, sample_range, smooth_range):
     input_array = input[input_name].to_numpy(copy=True)
 
     r = sample_range
     output = np.zeros(len(input_array))
-    for i in range(len(input_array)):
+    for i in range(smooth_range[0], smooth_range[1], 1):
         if i > r-1 and i < len(input_array) - (r+1):
             output[i] = 0.0
             for j in range(r):
