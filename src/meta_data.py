@@ -10,23 +10,21 @@ class CVMetaData:
             self._filename = argv[1]
         else:
             self._filename = "./control_volume_analysis.csv"
+        self._working_dir = os.getcwd()
 
         # Read config file
         self._open_glottis = [0.0, 1.0]
-        working_dir = str()
         if len(argv) > 2:
             config_filename = argv[2]
         else:
             config_filename = self._filename.replace(
                 "control_volume_analysis.csv", "plot_settings.yaml")
-            working_dir = os.path.dirname(self.filename)
-            print(working_dir)
         with open(config_filename) as plot_configs:
             self._documents = yaml.full_load(plot_configs)
             self._open_glottis[0] = self._documents["open phase"]
             self._open_glottis[1] = self._documents["close phase"]
             self._output_dir = os.path.join(
-                working_dir, self._documents["output directory"])
+                self._working_dir, self._documents["output directory"])
             # Create dir if not exist
             if not os.path.exists(self._output_dir):
                 print("Output directory doesn't exist, will create the directory...")
@@ -58,6 +56,10 @@ class CVMetaData:
     @property
     def output_dir(self):
         return self._output_dir
+
+    @property
+    def working_dir(self):
+        return self._working_dir
 
     @property
     def n_period(self):
