@@ -125,11 +125,13 @@ for index in range(len(cv_data["Normalized time"])):
         smooth_start_index = index
     if cv_data["Normalized time"][index] < n_period:
         smooth_end_index = index
+smooth_end_index += smooth_range
+smooth_start_index -= smooth_range
 
 print(f"Smooth data in [{smooth_start_index} {smooth_end_index}] range...")
 for label, content in cv_bernoulli.items():
     if label != "Time" and label != "Normalized time":
-        smooth(cv_bernoulli, label, label, 100, [
+        smooth(cv_bernoulli, label, label, smooth_range, [
                smooth_start_index, smooth_end_index])
 
 # Figure properties

@@ -43,9 +43,11 @@ for index in range(len(cv_data["Normalized time"])):
         smooth_start_index = index
     if cv_data["Normalized time"][index] < meta_data.n_period:
         smooth_end_index = index
+smooth_start_index -= smooth_range
+smooth_end_index += smooth_range
 for label, content in on_fly_data.items():
     if label != "Time" and label != "Normalized time":
-        direct_smooth(on_fly_data, label, label, 100, [
+        direct_smooth(on_fly_data, label, label, smooth_range, [
                       smooth_start_index, smooth_end_index])
 
 # Figure properties

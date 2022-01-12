@@ -61,11 +61,13 @@ for index in range(len(cv_data["Normalized time"])):
         smooth_start_index = index
     if cv_data["Normalized time"][index] < meta_data.n_period:
         smooth_end_index = index
+smooth_end_index += smooth_range
+smooth_start_index -= smooth_range
 
 print(f"Smooth data in [{smooth_start_index} {smooth_end_index}] range...")
 for label, content in cv_momentum.items():
     if label != "Time" and label != "Normalized time":
-        direct_smooth(cv_momentum, label, label, 100, [
+        direct_smooth(cv_momentum, label, label, smooth_range, [
                       smooth_start_index, smooth_end_index])
 
 # momentum total change
