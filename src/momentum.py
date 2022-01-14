@@ -46,7 +46,6 @@ def create_momentum_frame(cv_data):
     for label, content in cv_momentum.items():
         if label != "Time" and label != "Normalized time":
             cv_momentum[label] = content * to_newton
-    print(cv_momentum)
     return cv_momentum
 
 

@@ -33,11 +33,11 @@ cv_data["Normalized time"] = (cv_data["Time"] - meta_data.timespan[0])/T_cycle
 def create_mass_frame(cv_data):
     # Copy energy columns
     rho = 1.3e-3  # g/cm^3
-    S = 1.394  # width in cm
+    W = 1.394  # width in cm
     cv_mass = cv_data[["Time", "Normalized time"]].copy()
-    cv_mass["Inlet mass flow"] = cv_data["Inlet volume flow"] * rho * S
-    cv_mass["Outlet mass flow"] = cv_data["Outlet volume flow"] * rho * S
-    cv_mass["Gap mass flow"] = cv_data["Gap volume flow"] * rho * S
+    cv_mass["Inlet mass flow"] = cv_data["Inlet volume flow"] * rho * W
+    cv_mass["Outlet mass flow"] = cv_data["Outlet volume flow"] * rho * W
+    cv_mass["Gap mass flow"] = cv_data["Gap volume flow"] * rho * W
     cv_mass["Mass change rate"] = (
         cv_mass["Inlet mass flow"] - cv_mass["Outlet mass flow"])
     cv_mass["Mass from VF"] = cv_data["VF volume"] * rho
@@ -135,7 +135,6 @@ apply_fig_settings(fig_10)
 draw_open_close(fig_10)
 # Save the plot
 plt.tight_layout()
-# plt.savefig("./figures/10-vf.png", format='png')
 plt.savefig(meta_data.output_dir + "/10.png", format='png')
 
 fig_8b = cv_mass.plot(
