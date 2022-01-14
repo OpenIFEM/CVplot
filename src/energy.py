@@ -40,19 +40,21 @@ def create_energy_frame(cv_data):
     if ("-KE efflux" in documents["energy"]):
         cv_energy["-KE efflux"] = cv_data["Inlet KE flux"] - \
             cv_data["Outlet KE flux"]
+        cv_energy["-Convective KE"] = -cv_data["Convective KE"]
+        cv_energy["Rate KE loss due to compression"] = cv_energy["-Convective KE"] - \
+            cv_energy["-KE efflux"]
     if ("Rate dissipation" in documents["energy"]):
         cv_energy["Rate dissipation"] = -cv_data["Rate dissipation"]
     if ("Rate compression work" in documents["energy"]):
         cv_energy["Rate compression work"] = cv_data["Rate compression work"]
     if ("Rate friction work" in documents["energy"]):
         cv_energy["Rate friction work"] = -cv_data["Rate friction work"]
-    if ("Pressure drive" in documents["energy"]):
-        cv_energy["Pressure drive"] = cv_data["Inlet pressure work"] - \
+    if ("Driving pressure work" in documents["energy"]):
+        cv_energy["Driving pressure work"] = cv_data["Inlet pressure work"] - \
             cv_data["Outlet pressure work"]
     # VF work
     if ("Rate VF work" in documents["energy"]):
-        cv_energy["-Convective KE"] = -cv_data["Convective KE"]
-        cv_energy["Rate VF work"] = -cv_data["Pressure convection"] - cv_energy["Pressure drive"]\
+        cv_energy["Rate VF work"] = -cv_data["Pressure convection"] - cv_energy["Driving pressure work"]\
             - cv_data["Rate compression work"]
     # Stabilization
     if ("Stabilization" in documents["energy"]):
@@ -68,12 +70,13 @@ def create_energy_frame(cv_data):
         except KeyError:
             return 0
     # Residual
-    cv_energy["Residual"] = get_or_none("Pressure drive") + \
+    cv_energy["Residual"] = get_or_none("Driving pressure work") + \
         get_or_none("-KE efflux") + get_or_none("Rate KE") + \
         get_or_none("Rate VF work") + get_or_none("Rate compression work") + \
         get_or_none("Rate dissipation") + get_or_none("Rate friction work") - \
         get_or_none("Stabilization") +\
-        get_or_none("Rate turbulent momentum transfer")
+        get_or_none("Rate turbulent momentum transfer") +\
+        get_or_none("Rate KE loss due to compression")
 
     # Convert the unit
     for label, content in cv_energy.items():
@@ -148,13 +151,13 @@ def update_xlabels(fig):
 
 # Plots
 fig_12a_names, fig_12a_styles, fig_12a_colors = [], [], []
-for (item, line, color) in zip(["Residual", "Pressure drive", "Rate VF work", "Rate friction work",
+for (item, line, color) in zip(["Residual", "Driving pressure work", "Rate VF work", "Rate friction work",
                                 "Rate KE", "-KE efflux", "Rate compression work",
                                 "Rate dissipation", "Stabilization",
-                                "Rate turbulent momentum transfer"],
+                                "Rate turbulent momentum transfer", "Rate KE loss due to compression"],
                                ['-', '-', '-', '--', '-',
-                                   '-.', '--', '-.', '-', '-'],
-                               ['g', 'lightgreen', 'r', 'k', 'b', 'b', 'b', 'm', 'y', 'm']):
+                                   '-.', '--', '-.', '-', '-', '-.'],
+                               ['g', 'lightgreen', 'r', 'k', 'b', 'b', 'b', 'm', 'y', 'm', 'y']):
     if item in cv_energy.keys():
         fig_12a_names.append(item)
         fig_12a_styles.append(line)
@@ -167,7 +170,7 @@ fig_12a = cv_energy.plot(
     color=fig_12a_colors, markevery=20, lw=5)
 # Thicken the input
 for line in fig_12a.get_lines():
-    if line.get_label() == "Pressure drive":
+    if line.get_label() == "Driving pressure work":
         line.set_linewidth(10)
 
 apply_fig_settings(fig_12a)
@@ -206,7 +209,7 @@ for term in one_cycle_data.items():
         integrated_works[term_name] += entry * 5e-7
 
 for term in integrated_works.items():
-    percentage = f"{term[1]/integrated_works['Pressure drive'] * 100:.1f}%"
+    percentage = f"{term[1]/integrated_works['Driving pressure work'] * 100:.1f}%"
     buget_table.append((term[0], percentage))
 
 print(tabulate(buget_table, headers='firstrow', tablefmt='fancy_grid'))
