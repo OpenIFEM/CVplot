@@ -14,6 +14,7 @@ c = 34000  # Sound speed
 rho = 1.3e-3  # Air density
 to_mps = 1e-2  # Convert from cm/s to m/s
 to_pa = 1e-1  # Convert from dyne to Pa
+to_mm = 1e1  # Convert from cm to mm
 
 meta_data = CVMetaData(sys.argv)
 documents = meta_data.documents
@@ -33,6 +34,29 @@ on_fly_data = cv_data[["Time", "Normalized time",
 # Convert units
 on_fly_data["Max velocity"] = on_fly_data["Max velocity"] * to_mps
 on_fly_data["Probed pressure"] = on_fly_data["Probed pressure"] * to_pa
+
+# Read gap data (if exist)
+gap_data = pd.read_csv(meta_data.working_dir + "/gap.csv", header=0)
+gap_data["Gap"] = gap_data["Gap"] * to_mm
+gap_data["Normalized time"] = (
+    gap_data["Time"] - meta_data.timespan[0])/T_cycle
+
+
+# FFT for pressure
+def do_psd(p, t):
+    # Hann window
+    p = np.multiply(np.hanning(len(p)), p)
+    Ts = t[1]-t[0]
+    # Use the next2power as N
+    N = int(2**np.ceil(np.log(p.shape[0])/np.log(2))) * 10
+    Nf = N // 2
+    xf = np.fft.fftfreq(N, d=Ts)
+    yf = 2.0 * (np.fft.fft(p, N))**2 * Ts / N * 10
+    return xf[:Nf], yf[:Nf]
+
+
+freq, power = do_psd(on_fly_data["Probed pressure"], on_fly_data["Time"])
+freq_gap, power_gap = do_psd(gap_data["Gap"], gap_data["Time"])
 
 # Smooth
 smooth_start_index = 0
@@ -77,19 +101,6 @@ def draw_open_close(fig):
              fig.get_ylim(), 'r--', linewidth=4)
 
 
-# FFT for pressure
-def do_psd(p, t):
-    # Hann window
-    p = np.multiply(np.hanning(len(p)), p)
-    Ts = t[1]-t[0]
-    # Use the next2power as N
-    N = int(2**np.ceil(np.log(p.shape[0])/np.log(2))) * 10
-    Nf = N // 2
-    xf = np.fft.fftfreq(N, d=Ts)
-    yf = 2.0 * np.fft.fft(p, N) ** 2 * Ts / N * 10
-    return xf[:Nf], yf[:Nf]
-
-
 # Plots
 max_vel = on_fly_data.plot(
     x="Normalized time",
@@ -116,4 +127,32 @@ pressure_time.set_ylabel("Mouth pressure (Pa)", fontsize=axis_label_size)
 # Save the plot
 plt.tight_layout()
 plt.savefig(meta_data.output_dir + "/pressure_time_domaion.png", format='png')
+plt.show()
+
+gap_time = gap_data.plot(
+    x="Normalized time",
+    y=["Gap"],
+    style=['-'],
+    color=['b'], markevery=20, lw=5)
+apply_fig_settings(gap_time)
+draw_open_close(gap_time)
+gap_time.set_xlabel("t/T", fontsize=axis_label_size)
+gap_time.set_ylabel("Gap width (mm)", fontsize=axis_label_size)
+# Save the plot
+plt.tight_layout()
+plt.savefig(meta_data.output_dir + "/gap_time_domaion.png", format='png')
+plt.show()
+
+plt.plot(freq, np.abs(power), 'b', freq_gap, np.abs(
+    power_gap), 'r', lw=4)
+plt.yscale("log")
+plt.xlim([0, 2000])
+plt.ylim([1e-12, 1e3])
+plt.xlabel("Frequency (Hz)", fontsize=28)
+plt.ylabel("PSD", fontsize=28)
+plt.grid()
+plt.legend(["$p_{m}$ ($Pa^2/Hz$)", "$h_{g}$ ($mm^2/Hz$)"], fontsize=28)
+plt.tight_layout()
+plt.savefig(meta_data.output_dir +
+            "/pressure_frequency_domain.png", format='png')
 plt.show()
