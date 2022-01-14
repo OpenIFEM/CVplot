@@ -40,7 +40,7 @@ writer = Writer(fps=24, metadata=dict(artist='Me'), bitrate=1800)
 fig = plt.figure()
 # creating a subplot
 ax1 = fig.add_subplot(1, 1, 1)
-ax1.axis('equal')
+ax1.set_aspect(S * 1.1)
 
 # Start and end time step
 output_interval = 23
@@ -52,16 +52,23 @@ n_frames = int((end_timestep - start_timestep + 1) // output_interval) - 1
 
 # Animation function
 def animate(i):
+    global S
     plt.cla()
     timestamp = (i + 1) * output_interval + start_timestep
     current_data = pd.read_table(
         boundary_trace_dir + file_prefix + str(timestamp), sep=" ",
         header=0, names=["ID", "X", "Y", "P"], index_col="ID")
+    current_data["Y"] = (S - current_data["Y"]) / S
+    plt.xlim([12.5, 14.5])
+    plt.ylim([-0.1, 1.0])
     plt.scatter(current_data["X"], current_data["Y"],
                 c=current_data["P"], cmap="rainbow")
-    plt.xlim([12.5, 14.5])
-    plt.ylim([0.0, 1.5])
-    plt.title(f"t = {timestamp * dt:.7f}")
+    plt.plot(plt.xlim(), [0, 0], 'k--', lw=4)
+    plt.annotate("H/2", [12.7, 0.1], fontsize=15, color='k')
+    plt.gca().invert_yaxis()
+    plt.title(f"t = {timestamp * dt:.7f}", fontsize=20)
+    plt.ylabel("2h/H", fontsize=20)
+    plt.xlabel("x", fontsize=20)
 
 
 # Initialization function
