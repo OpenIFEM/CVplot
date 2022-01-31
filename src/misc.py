@@ -1,9 +1,8 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 import pandas as pd
-from tabulate import tabulate
+from scipy.signal import savgol_filter
 from meta_data import CVMetaData
 
 from smooth import *
@@ -57,6 +56,14 @@ def do_psd(p, t):
 
 freq, power = do_psd(on_fly_data["Probed pressure"], on_fly_data["Time"])
 freq_gap, power_gap = do_psd(gap_data["Gap"], gap_data["Time"])
+
+# Create resonance for pressure (broad peaks)
+resonance = np.zeros(len(power))
+resonance = np.log(np.abs(power))
+resonance = savgol_filter(resonance, 701, 3)
+resonance = savgol_filter(resonance, 1001, 3)
+resonance = savgol_filter(resonance, 1401, 3)
+resonance = np.exp(resonance)
 
 # Smooth
 smooth_start_index = 0
@@ -145,6 +152,7 @@ plt.show()
 
 plt.plot(freq, np.abs(power), 'b', freq_gap, np.abs(
     power_gap), 'r', lw=4)
+plt.plot(freq, resonance, 'k--', lw=4)
 plt.yscale("log")
 plt.xlim([0, 2000])
 plt.ylim([1e-12, 1e3])
