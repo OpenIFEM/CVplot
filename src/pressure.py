@@ -95,11 +95,23 @@ def draw_open_close(fig):
 
 
 def update_xlabels(fig):
-    ylabels = [format(label, '.3f') for label in fig.get_yticks()]
+    ylabels = [format(label, '.0f') for label in fig.get_yticks()]
     fig.set_yticklabels(ylabels)
 
 
 # Plots
+pressure_waveform = cv_pressure.plot(
+    x="Normalized time", y=["P_A", "P_D"],
+    style=['-', '--'], color=['b', 'r'], markevery=50, lw=5)
+apply_fig_settings(pressure_waveform)
+draw_open_close(pressure_waveform)
+update_xlabels(pressure_waveform)
+# Save the plot
+plt.tight_layout()
+plt.savefig(meta_data.output_dir +
+            "/cv_pressure_waveform.png", format='png')
+plt.show()
+
 # Entrance pressure decomposition
 entrance_decomp_a = cv_pressure.plot(
     x="Normalized time", y=["P_A", "P_A^+", "P_A^-"],
