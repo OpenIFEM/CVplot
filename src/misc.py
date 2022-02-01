@@ -66,20 +66,8 @@ resonance = savgol_filter(resonance, 1401, 3)
 resonance = np.exp(resonance)
 
 # Smooth
-smooth_start_index = 0
-smooth_end_index = 0
 smooth_range = 100
-for index in range(len(cv_data["Normalized time"])):
-    if cv_data["Normalized time"][index] < 0:
-        smooth_start_index = index
-    if cv_data["Normalized time"][index] < meta_data.n_period:
-        smooth_end_index = index
-smooth_start_index -= smooth_range
-smooth_end_index += smooth_range
-for label, content in on_fly_data.items():
-    if label != "Time" and label != "Normalized time":
-        direct_smooth(on_fly_data, label, label, smooth_range, [
-                      smooth_start_index, smooth_end_index])
+smooth_data(on_fly_data, meta_data, smooth_range)
 
 # Figure properties
 height = 938/80

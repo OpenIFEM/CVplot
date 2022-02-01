@@ -117,22 +117,8 @@ def create_bernoulli_frame(cv_data):
 cv_bernoulli = create_bernoulli_frame(cv_data)
 
 # smooth
-smooth_start_index = 0
-smooth_end_index = 0
 smooth_range = 100
-for index in range(len(cv_data["Normalized time"])):
-    if cv_data["Normalized time"][index] < 0:
-        smooth_start_index = index
-    if cv_data["Normalized time"][index] < n_period:
-        smooth_end_index = index
-smooth_end_index += smooth_range
-smooth_start_index -= smooth_range
-
-print(f"Smooth data in [{smooth_start_index} {smooth_end_index}] range...")
-for label, content in cv_bernoulli.items():
-    if label != "Time" and label != "Normalized time":
-        smooth(cv_bernoulli, label, label, smooth_range, [
-               smooth_start_index, smooth_end_index])
+smooth_data(cv_bernoulli, meta_data, smooth_range)
 
 # Figure properties
 height = 938/80

@@ -1,4 +1,5 @@
 import pandas as pd
+from meta_data import CVMetaData
 import numpy as np
 
 
@@ -43,3 +44,19 @@ def direct_smooth(input, input_name, output_name, sample_range, smooth_range):
             output[i] = output[i] / (2*r)
 
     input[output_name] = output
+
+
+def smooth_data(data: pd.DataFrame, meta_data: CVMetaData, smooth_range: int):
+    for index in range(len(data["Normalized time"])):
+        if data["Normalized time"][index] < 0:
+            smooth_start_index = index
+        if data["Normalized time"][index] < meta_data.n_period:
+            smooth_end_index = index
+    smooth_end_index += smooth_range
+    smooth_start_index -= smooth_range
+
+    print(f"Smooth data in [{smooth_start_index} {smooth_end_index}] range...")
+    for label, content in data.items():
+        if label != "Time" and label != "Normalized time":
+            direct_smooth(data, label, label, smooth_range, [
+                smooth_start_index, smooth_end_index])

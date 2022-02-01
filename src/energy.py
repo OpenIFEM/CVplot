@@ -88,22 +88,8 @@ def create_energy_frame(cv_data):
 cv_energy = create_energy_frame(cv_data)
 
 # smooth
-smooth_start_index = 0
-smooth_end_index = 0
 smooth_range = 100
-for index in range(len(cv_data["Normalized time"])):
-    if cv_data["Normalized time"][index] < 0:
-        smooth_start_index = index
-    if cv_data["Normalized time"][index] < meta_data.n_period:
-        smooth_end_index = index
-smooth_end_index += smooth_range
-smooth_start_index -= smooth_range
-
-print(f"Smooth data in [{smooth_start_index} {smooth_end_index}] range...")
-for label, content in cv_energy.items():
-    if label != "Time" and label != "Normalized time":
-        direct_smooth(cv_energy, label, label, smooth_range, [
-                      smooth_start_index, smooth_end_index])
+smooth_data(cv_energy, meta_data, smooth_range)
 
 # Figure properties
 height = 938/80
