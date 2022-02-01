@@ -50,8 +50,22 @@ def create_energy_frame(cv_data):
     if ("Rate friction work" in documents["energy"]):
         cv_energy["Rate friction work"] = -cv_data["Rate friction work"]
     if ("Driving pressure work" in documents["energy"]):
+        cv_energy["Inlet pressure work"] = cv_data["Inlet pressure work"]
+        cv_energy["Outlet pressure work"] = cv_data["Outlet pressure work"]
         cv_energy["Driving pressure work"] = cv_data["Inlet pressure work"] - \
             cv_data["Outlet pressure work"]
+        cv_energy["Acoustic output"] = - \
+            cv_data["Outlet volume flow"]**2 * rho * c / S
+        cv_energy["Acoustic loss"] = - \
+            cv_data["Inlet volume flow"]**2 * rho * c / S
+        cv_energy["Pressure input"] = cv_data["Inlet pressure work"] - cv_energy["Acoustic loss"] - \
+            (cv_data["Outlet pressure work"] + cv_energy["Acoustic output"])
+        cv_energy["2P_A^+Q_A"] = (cv_data["Inlet pressure work"] +
+                                  cv_data["Inlet volume flow"]**2 * rho * c / S)
+        cv_energy["2P_D^-Q_D"] = (cv_data["Outlet pressure work"] -
+                                  cv_data["Outlet volume flow"]**2 * rho * c / S)
+        cv_energy["Net acoustic power flow"] = cv_energy["Acoustic output"] + \
+            cv_energy["Acoustic loss"]
     # VF work
     if ("Rate VF work" in documents["energy"]):
         cv_energy["Rate VF work"] = -cv_data["Pressure convection"] - cv_energy["Driving pressure work"]\
@@ -179,6 +193,90 @@ plt.tight_layout()
 plt.savefig(meta_data.output_dir + "/12b.png", format='png')
 plt.show()
 
+# Figure for decomposed pressure
+# Net input, acoustic loss/output
+input_decomp_plot = cv_energy.plot(
+    x="Normalized time", y=["Driving pressure work", "Pressure input", "Net acoustic power flow"],
+    style=["k-", "b--", "r-."])
+apply_fig_settings(input_decomp_plot)
+draw_open_close(input_decomp_plot)
+update_xlabels(input_decomp_plot)
+for line in input_decomp_plot.get_lines():
+    if line.get_label() == "Pressure input":
+        line.set_linewidth(6)
+    else:
+        line.set_linewidth(5)
+# Save the plot
+plt.tight_layout()
+plt.savefig(meta_data.output_dir +
+            "/cv_energy_pressure_input_decomposition.png", format='png')
+plt.show()
+
+# Entrance decomposition
+entrance_decomp_plot = cv_energy.plot(
+    x="Normalized time", y=["Inlet pressure work", "2P_A^+Q_A", "Acoustic loss"],
+    style=["k-", "b--", "r-."])
+apply_fig_settings(entrance_decomp_plot)
+draw_open_close(entrance_decomp_plot)
+update_xlabels(entrance_decomp_plot)
+for line in entrance_decomp_plot.get_lines():
+    if line.get_label() == "Inlet pressure work":
+        line.set_linewidth(6)
+    else:
+        line.set_linewidth(5)
+# Save the plot
+plt.tight_layout()
+plt.savefig(meta_data.output_dir +
+            "/cv_energy_entrance_pressure_decomposition.png", format='png')
+plt.show()
+
+# Entrance decomposition
+exit_decomp_plot = cv_energy.plot(
+    x="Normalized time", y=["Outlet pressure work", "2P_D^-Q_D", "Acoustic output"],
+    style=["k-", "b--", "r-."])
+apply_fig_settings(exit_decomp_plot)
+draw_open_close(exit_decomp_plot)
+update_xlabels(exit_decomp_plot)
+for line in exit_decomp_plot.get_lines():
+    if line.get_label() == "Outlet pressure work":
+        line.set_linewidth(6)
+    else:
+        line.set_linewidth(5)
+# Save the plot
+plt.tight_layout()
+plt.savefig(meta_data.output_dir +
+            "/cv_energy_exit_pressure_decomposition.png", format='png')
+plt.show()
+
+# All terms with pressure decomposition
+plt.rcParams["figure.figsize"] = [width*1.2, height]
+energy_plot = cv_energy.plot(
+    x="Normalized time", y=["Pressure input", "Acoustic loss", "Acoustic output",
+                            "Rate VF work", "Rate KE", "-KE efflux",  "Rate KE loss due to compression",
+                            "Rate dissipation", "Rate compression work", "Rate friction work",
+                            "Rate turbulent momentum transfer"],
+    style=["b", "r", "b--", "b", "g", "r--", "m--", "r-.", "g--", "m", "k"], markevery=20)
+for line in energy_plot.get_lines():
+    if line.get_label() == "Pressure input":
+        line.set_linewidth(6)
+    else:
+        line.set_linewidth(3)
+apply_fig_settings(energy_plot)
+draw_open_close(energy_plot)
+update_xlabels(energy_plot)
+plt.subplots_adjust(right=0.75)
+energy_legend = [r"$2(\langle{p}_A^+\rangle\langle{Q}_A\rangle-\langle{p}_D^-\rangle\langle{Q}_D\rangle)$",
+                 r"$-\frac{\rho c}{S}\langle{Q}_A\rangle^2$", r"$-\frac{\rho c}{S}\langle{Q}_D\rangle^2$",
+                 r"$-\dot{W}_{VF}$", r"$-\dot{KE}_V$", r"$-\dot{KE}_S$", r"$-\dot{KE}_{VC}$",
+                 r"$-\dot{W}_\nu$", r"$\dot{PE}$", r"$-\dot{W}_f$", r"$-\dot{W}_t$"]
+energy_plot.legend(energy_legend, bbox_to_anchor=(1.55, 0.5),
+                   loc="right", ncol=1, fontsize=26, frameon=False)
+# Save the plot
+plt.tight_layout()
+plt.savefig(meta_data.output_dir +
+            "/cv_energy_overall.png", format='png')
+plt.show()
+
 # Output the budget
 buget_table = [("Energy Term", "Percentage")]
 integrated_works = {}
@@ -195,7 +293,7 @@ for term in one_cycle_data.items():
         integrated_works[term_name] += entry * 5e-7
 
 for term in integrated_works.items():
-    percentage = f"{term[1]/integrated_works['Driving pressure work'] * 100:.1f}%"
+    percentage = f"{term[1]/integrated_works['Pressure input'] * 100:.1f}%"
     buget_table.append((term[0], percentage))
 
 print(tabulate(buget_table, headers='firstrow', tablefmt='fancy_grid'))
