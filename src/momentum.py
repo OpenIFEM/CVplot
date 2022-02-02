@@ -40,8 +40,16 @@ def create_momentum_frame(cv_data):
     # TGP
     cv_momentum["TGP force"] = -cv_data["Outlet pressure force"] + \
         cv_data["Inlet pressure force"]
+    # Pressure decomposition
+    cv_momentum["2P_LS"] = (cv_momentum["Inlet pressure force"] +
+                            cv_data["Inlet volume flow"] * rho * c)
+    cv_momentum["-P_DS"] = -cv_momentum["Outlet pressure force"]
+    cv_momentum["Built-up pressure force"] = cv_momentum["2P_LS"]
     # Drag
-    # cv_momentum["-VF drag"] = -cv_momentum["VF drag"]
+    cv_momentum["-VF drag"] = -cv_momentum["VF drag"]
+    # Volume source
+    cv_momentum["Volume source"] = (
+        cv_data["Outlet volume flow"] + cv_data["Inlet volume flow"]) * rho * c
     # Convert the unit
     for label, content in cv_momentum.items():
         if label != "Time" and label != "Normalized time":
@@ -135,4 +143,29 @@ update_xlabels(fig_11c)
 # Save the plot
 plt.tight_layout()
 plt.savefig(meta_data.output_dir + "/11c.png", format='png')
+plt.show()
+
+# Plot volume source and drag soruce
+volume_drag_source = cv_momentum.plot(
+    x="Normalized time", y=["Volume source", "-VF drag"],
+    style=['-', '--'], color=['k', 'b'], lw=5)
+apply_fig_settings(volume_drag_source)
+draw_open_close(volume_drag_source)
+update_xlabels(volume_drag_source)
+# Save the plot
+plt.tight_layout()
+plt.savefig(meta_data.output_dir + "/cv_source_volume_drag.png", format='png')
+plt.show()
+
+# Plot TGP decomposition
+tgp_decomp_a = cv_momentum.plot(
+    x="Normalized time", y=["2P_LS", "TGP force", "Inlet pressure force", "-P_DS"],
+    style=['-', '--', '-.', '-'], color=['k', 'b', 'r', 'g'], lw=5)
+apply_fig_settings(tgp_decomp_a)
+draw_open_close(tgp_decomp_a)
+update_xlabels(tgp_decomp_a)
+# Save the plot
+plt.tight_layout()
+plt.savefig(meta_data.output_dir +
+            "/cv_source_tgp_decomposition_a.png", format='png')
 plt.show()
