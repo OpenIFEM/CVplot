@@ -105,7 +105,7 @@ def main():
     # Plots
     pressure_waveform = cv_pressure.plot(
         x="Normalized time", y=["P_A", "P_D"],
-        style=['-', '--'], color=['b', 'r'], markevery=50, lw=5)
+        style=['-', '--'], color=['b', 'g'], markevery=50, lw=5)
     apply_fig_settings(pressure_waveform)
     draw_open_close(pressure_waveform)
     update_xlabels(pressure_waveform)
@@ -118,7 +118,7 @@ def main():
     # Entrance pressure decomposition
     entrance_decomp_a = cv_pressure.plot(
         x="Normalized time", y=["P_A", "P_A^+", "P_A^-"],
-        style=['-', '--', '-.'], color=['k', 'r', 'b'], markevery=50, lw=5)
+        style=['-', '--', '-.'], color=['b', 'g', 'r'], markevery=50, lw=5)
     apply_fig_settings(entrance_decomp_a)
     draw_open_close(entrance_decomp_a)
     update_xlabels(entrance_decomp_a)
@@ -132,7 +132,7 @@ def main():
     entrance_decomp_b = cv_pressure.plot(
         x="Normalized time",
         y=["P_A", "Entrance built-up pressure", "Entrance radiated pressure"],
-        style=['-', '--', '-.'], color=['k', 'r', 'b'], markevery=50, lw=5)
+        style=['-', '--', '-.'], color=['b', 'g', 'r'], markevery=50, lw=5)
     apply_fig_settings(entrance_decomp_b)
     draw_open_close(entrance_decomp_b)
     update_xlabels(entrance_decomp_b)
@@ -145,7 +145,7 @@ def main():
     # Exit pressure decomposition
     exit_decomp_a = cv_pressure.plot(
         x="Normalized time", y=["P_D", "P_D^+", "P_D^-"],
-        style=['-', '--', '-.'], color=['k', 'r', 'b'], markevery=50, lw=5)
+        style=['-', '--', '-.'], color=['b', 'g', 'r'], markevery=50, lw=5)
     apply_fig_settings(exit_decomp_a)
     draw_open_close(exit_decomp_a)
     update_xlabels(exit_decomp_a)
@@ -159,7 +159,7 @@ def main():
     exit_decomp_b = cv_pressure.plot(
         x="Normalized time",
         y=["P_D", "Exit built-up pressure", "Exit radiated pressure"],
-        style=['-', '--', '-.'], color=['k', 'r', 'b'], markevery=50, lw=5)
+        style=['-', '--', '-.'], color=['b', 'g', 'r'], markevery=50, lw=5)
     apply_fig_settings(exit_decomp_b)
     draw_open_close(exit_decomp_b)
     update_xlabels(exit_decomp_b)

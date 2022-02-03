@@ -196,7 +196,7 @@ def main():
     # Net input, acoustic loss/output
     input_decomp_plot = cv_energy.plot(
         x="Normalized time", y=["Driving pressure work", "Pressure input", "Net acoustic power flow"],
-        style=["k-", "b--", "r-."])
+        style=["b-", "g--", "r-."])
     apply_fig_settings(input_decomp_plot)
     draw_open_close(input_decomp_plot)
     update_xlabels(input_decomp_plot)
@@ -214,7 +214,7 @@ def main():
     # Entrance decomposition
     entrance_decomp_plot = cv_energy.plot(
         x="Normalized time", y=["Inlet pressure work", "2P_A^+Q_A", "Acoustic loss"],
-        style=["k-", "b--", "r-."])
+        style=["b-", "g--", "r-."])
     apply_fig_settings(entrance_decomp_plot)
     draw_open_close(entrance_decomp_plot)
     update_xlabels(entrance_decomp_plot)
@@ -232,7 +232,7 @@ def main():
     # Entrance decomposition
     exit_decomp_plot = cv_energy.plot(
         x="Normalized time", y=["Outlet pressure work", "2P_D^-Q_D", "Acoustic output"],
-        style=["k-", "b--", "r-."])
+        style=["b-", "g--", "r-."])
     apply_fig_settings(exit_decomp_plot)
     draw_open_close(exit_decomp_plot)
     update_xlabels(exit_decomp_plot)

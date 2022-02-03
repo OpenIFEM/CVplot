@@ -148,7 +148,7 @@ plt.show()
 # Plot volume source and drag soruce
 volume_drag_source = cv_momentum.plot(
     x="Normalized time", y=["Volume source", "-VF drag"],
-    style=['-', '--'], color=['k', 'b'], lw=5)
+    style=['-', '--'], color=['b', 'g'], lw=5)
 apply_fig_settings(volume_drag_source)
 draw_open_close(volume_drag_source)
 update_xlabels(volume_drag_source)
@@ -160,7 +160,7 @@ plt.show()
 # Plot TGP decomposition
 tgp_decomp_a = cv_momentum.plot(
     x="Normalized time", y=["2P_LS", "TGP force", "Inlet pressure force", "-P_DS"],
-    style=['-', '--', '-.', '-'], color=['k', 'b', 'r', 'g'], lw=5)
+    style=['-', '--', '-.', '-'], color=['b', 'g', 'r', 'm'], lw=5)
 apply_fig_settings(tgp_decomp_a)
 draw_open_close(tgp_decomp_a)
 update_xlabels(tgp_decomp_a)
