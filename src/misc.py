@@ -1,4 +1,5 @@
 import sys
+from matplotlib import rcParams
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -151,4 +152,24 @@ plt.legend(["$p_{m}$ ($Pa^2/Hz$)", "$h_{g}$ ($mm^2/Hz$)"], fontsize=28)
 plt.tight_layout()
 plt.savefig(meta_data.output_dir +
             "/pressure_frequency_domain.png", format='png')
+plt.show()
+
+# All time gap history
+gap_time_full = gap_data.plot(
+    x="Time",
+    y=["Gap"],
+    style=['-'],
+    color=['b'], lw=3, figsize=(width*1.5, height*0.36))
+plt.locator_params(axis='y', nbins=8)
+gap_time_full.tick_params(direction='in', length=20,
+                          width=2, top=True, right=True)
+gap_time_full.get_legend().remove()
+gap_time_full.grid()
+gap_time_full.set_xlim([0.0, 0.24])
+gap_time_full.set_ylim([0.0, 1.0])
+gap_time_full.set_xlabel("Time (s)", fontsize=axis_label_size)
+gap_time_full.set_ylabel("h (mm)", fontsize=axis_label_size)
+# Save the plot
+plt.tight_layout()
+plt.savefig(meta_data.output_dir + "/gap_time_full.png", format='png')
 plt.show()
