@@ -86,6 +86,32 @@ def create_energy_frame(cv_data, documents):
     return cv_energy
 
 
+def compute_budget(cv_energy: pd.DataFrame, meta_data: CVMetaData):
+    terms_to_compute = {"Rate KE", "-KE efflux", "Rate KE loss due to compression", "Rate dissipation",
+                        "Rate compression work", "Rate friction work", "Driving pressure work",
+                        "Acoustic output", "Acoustic loss", "Pressure input", "Net acoustic power flow",
+                        "Rate VF work", "Rate turbulent momentum transfer", "Residual"}
+    budget_dict = {}
+    integrated_works = {}
+
+    n_cycle_data = cv_energy[(cv_energy["Normalized time"] >= 0) & (
+        cv_energy["Normalized time"] <= meta_data.n_period)]
+
+    for term in n_cycle_data.items():
+        term_name = term[0]
+        if term_name not in terms_to_compute:
+            continue
+        integrated_works[term_name] = 0.0
+        for entry in n_cycle_data[term_name]:
+            integrated_works[term_name] += entry * 5e-7
+
+    for term in integrated_works.items():
+        percentage = term[1] / integrated_works["Pressure input"]
+        budget_dict[term[0]] = percentage
+
+    return budget_dict
+
+
 def main():
     meta_data = CVMetaData(sys.argv)
     documents = meta_data.documents
@@ -263,13 +289,12 @@ def main():
     apply_fig_settings(energy_plot)
     draw_open_close(energy_plot)
     update_xlabels(energy_plot)
-    plt.subplots_adjust(right=0.75)
-    energy_legend = [r"$2(\langle{p}_A^+\rangle\langle{Q}_A\rangle-\langle{p}_D^-\rangle\langle{Q}_D\rangle)$",
-                     r"$-\frac{\rho c}{S}\langle{Q}_A\rangle^2$", r"$-\frac{\rho c}{S}\langle{Q}_D\rangle^2$",
-                     r"$-\dot{W}_{VF}$", r"$-\dot{KE}_V$", r"$-\dot{KE}_S$", r"$-\dot{KE}_{VC}$",
-                     r"$-\dot{W}_\nu$", r"$\dot{PE}$", r"$-\dot{W}_f$", r"$-\dot{W}_t$"]
-    energy_plot.legend(energy_legend, bbox_to_anchor=(1.55, 0.5),
-                       loc="right", ncol=1, fontsize=26, frameon=False)
+    energy_legend = [r"$2(\langle{p}_\mathrm{A}^+\rangle\langle{Q}_\mathrm{A}\rangle-\langle{p}_\mathrm{D}^-\rangle\langle{Q}_\mathrm{D}\rangle)$",
+                     r"$-\frac{\rho c}{S}\langle{Q}_\mathrm{A}\rangle^2$", r"$-\frac{\rho c}{S}\langle{Q}_\mathrm{D}\rangle^2$",
+                     r"$-\dot{W}_\mathrm{VF}$", r"$-\dot{KE}_\mathrm{V}$", r"$-\dot{KE}_\mathrm{S}$", r"$-\dot{KE}_{VC}$",
+                     r"$-\dot{W}_\mathrm{\nu}$", r"$\dot{PE}$", r"$-\dot{W}_\mathrm{f}$", r"$-\dot{W}_\mathrm{t}$"]
+    energy_plot.legend(energy_legend, bbox_to_anchor=(1.0, 0.5),
+                       loc="center left", ncol=1, fontsize=26, frameon=False)
     # Save the plot
     plt.tight_layout()
     plt.savefig(meta_data.output_dir +
@@ -277,25 +302,12 @@ def main():
     plt.show()
 
     # Output the budget
-    buget_table = [("Energy Term", "Percentage")]
-    integrated_works = {}
-
-    one_cycle_data = cv_energy[(cv_energy["Normalized time"] >= 0) & (
-        cv_energy["Normalized time"] <= 1)]
-
-    for term in one_cycle_data.items():
-        term_name = term[0]
-        if term_name == "Time" or term_name == "Normalized time":
-            continue
-        integrated_works[term_name] = 0.0
-        for entry in one_cycle_data[term_name]:
-            integrated_works[term_name] += entry * 5e-7
-
-    for term in integrated_works.items():
-        percentage = f"{term[1]/integrated_works['Pressure input'] * 100:.1f}%"
-        buget_table.append((term[0], percentage))
-
-    print(tabulate(buget_table, headers='firstrow', tablefmt='fancy_grid'))
+    budget_dict = compute_budget(cv_energy, meta_data)
+    budget_table = [("Energy Term", "Percentage")]
+    for key, item in budget_dict.items():
+        percentage = f"{100*item:.2f}%"
+        budget_table.append((key, percentage))
+    print(tabulate(budget_table, headers='firstrow', tablefmt='fancy_grid'))
 
 
 if __name__ == "__main__":
