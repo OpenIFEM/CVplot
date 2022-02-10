@@ -34,6 +34,10 @@ class CVMetaData:
             if "period" in self._documents:
                 self._n_period = self._documents["period"]
 
+            # Average behavior reader
+            if "average" in self._documents:
+                self._cases = self._documents["average"]
+
             for item, doc in self._documents.items():
                 print(item, ":", doc)
 
@@ -64,3 +68,7 @@ class CVMetaData:
     @property
     def n_period(self):
         return self._n_period
+
+    @property
+    def cases(self):
+        return self._cases
