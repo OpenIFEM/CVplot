@@ -36,8 +36,10 @@ def create_pressure_frame(cv_data):
     cv_pressure["Exit built-up pressure"] = 2 * cv_pressure["P_D^-"]
     cv_pressure["Radiated pressure"] = (
         cv_data["Outlet volume flow"] + cv_data["Inlet volume flow"]) * rho * c / S
-    cv_pressure["Entrance radiated pressure"] = cv_data["Inlet volume flow"] * rho * c / S
-    cv_pressure["Exit radiated pressure"] = cv_data["Outlet volume flow"] * rho * c / S
+    cv_pressure["Entrance radiated pressure"] = - \
+        cv_data["Inlet volume flow"] * rho * c / S
+    cv_pressure["Exit radiated pressure"] = - \
+        cv_data["Outlet volume flow"] * rho * c / S
     # Convert the unit
     for label, content in cv_pressure.items():
         if label != "Time" and label != "Normalized time":
@@ -109,6 +111,10 @@ def main():
     apply_fig_settings(pressure_waveform)
     draw_open_close(pressure_waveform)
     update_xlabels(pressure_waveform)
+    pressure_waveform.legend(
+        [r"$\langle p_\mathrm{A} \rangle$", r"$\langle p_\mathrm{D} \rangle$"],
+        bbox_to_anchor=(1.0, 0.5),
+        loc='center left', ncol=1, frameon=False)
     # Save the plot
     plt.tight_layout()
     plt.savefig(meta_data.output_dir +
@@ -122,6 +128,11 @@ def main():
     apply_fig_settings(entrance_decomp_a)
     draw_open_close(entrance_decomp_a)
     update_xlabels(entrance_decomp_a)
+    entrance_decomp_a.legend(
+        [r"$\langle p_\mathrm{A} \rangle$", r"$\langle p_\mathrm{A}^+ \rangle$",
+         r"$\langle p_\mathrm{A}^- \rangle$"],
+        bbox_to_anchor=(1.0, 0.5),
+        loc='center left', ncol=1, frameon=False)
     # Save the plot
     plt.tight_layout()
     plt.savefig(meta_data.output_dir +
@@ -136,6 +147,11 @@ def main():
     apply_fig_settings(entrance_decomp_b)
     draw_open_close(entrance_decomp_b)
     update_xlabels(entrance_decomp_b)
+    entrance_decomp_b.legend(
+        [r"$\langle p_\mathrm{A} \rangle$", r"$2\langle p_\mathrm{A}^+ \rangle$",
+         r"$-\frac{\rho c}{S}\langle Q_\mathrm{A}^- \rangle$"],
+        bbox_to_anchor=(1.0, 0.5),
+        loc='center left', ncol=1, frameon=False)
     # Save the plot
     plt.tight_layout()
     plt.savefig(meta_data.output_dir +
@@ -149,6 +165,11 @@ def main():
     apply_fig_settings(exit_decomp_a)
     draw_open_close(exit_decomp_a)
     update_xlabels(exit_decomp_a)
+    exit_decomp_a.legend(
+        [r"$\langle p_\mathrm{D} \rangle$", r"$\langle p_\mathrm{D}^+ \rangle$",
+         r"$\langle p_\mathrm{D}^- \rangle$"],
+        bbox_to_anchor=(1.0, 0.5),
+        loc='center left', ncol=1, frameon=False)
     # Save the plot
     plt.tight_layout()
     plt.savefig(meta_data.output_dir +
@@ -163,6 +184,11 @@ def main():
     apply_fig_settings(exit_decomp_b)
     draw_open_close(exit_decomp_b)
     update_xlabels(exit_decomp_b)
+    exit_decomp_b.legend(
+        [r"$\langle p_\mathrm{D} \rangle$", r"$2\langle p_\mathrm{D}^- \rangle$",
+         r"$-\frac{\rho c}{S}\langle Q_\mathrm{D}^- \rangle$"],
+        bbox_to_anchor=(1.0, 0.5),
+        loc='center left', ncol=1, frameon=False)
     # Save the plot
     plt.tight_layout()
     plt.savefig(meta_data.output_dir +

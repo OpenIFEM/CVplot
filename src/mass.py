@@ -21,12 +21,15 @@ def create_mass_frame(cv_data):
     # Copy energy columns
     rho = 1.3e-3  # g/cm^3
     W = 1.394  # width in cm
-    cv_mass = cv_data[["Time", "Normalized time"]].copy()
+    cv_mass = cv_data[["Time", "Normalized time", "Inlet volume flow",
+                       "Outlet volume flow", "Gap volume flow"]].copy()
     cv_mass["Inlet mass flow"] = cv_data["Inlet volume flow"] * rho * W
     cv_mass["Outlet mass flow"] = cv_data["Outlet volume flow"] * rho * W
     cv_mass["Gap mass flow"] = cv_data["Gap volume flow"] * rho * W
     cv_mass["Mass change rate"] = (
         cv_mass["Inlet mass flow"] - cv_mass["Outlet mass flow"])
+    cv_mass["Volume change rate"] = (
+        cv_mass["Inlet volume flow"] - cv_mass["Outlet volume flow"])
     cv_mass["Mass from VF"] = cv_data["VF volume"] * rho
     # Compute mass rate from VF
     mass_VF = cv_mass["Mass from VF"].to_numpy()
@@ -82,6 +85,7 @@ def main():
     height = 938/80
     width = 1266/80
     label_size = 36
+    legend_size = 36
     plt.rcParams["figure.figsize"] = [width, height]
     plt.rcParams["xtick.labelsize"] = label_size
     plt.rcParams["ytick.labelsize"] = label_size
@@ -149,6 +153,41 @@ def main():
     # Save the plot
     plt.tight_layout()
     plt.savefig(meta_data.output_dir + "/glottal_flow.png", format='png')
+    plt.show()
+
+    plt.rcParams["figure.figsize"] = [width*1.2, height]
+    volume_plot = cv_mass.plot(
+        x="Normalized time",
+        y=["Inlet volume flow", "Outlet volume flow",
+            "Volume change rate"],
+        style=['-', '--', '-.'],
+        color=['b', 'g', 'r'], markevery=20, lw=5)
+    apply_fig_settings(volume_plot)
+    draw_open_close(volume_plot)
+    volume_plot.set_ylabel(
+        r"Volume Flow Rate ($cm^2/s$)", fontsize=label_size)
+    volume_plot.legend(
+        [r"$\langle Q_\mathrm{A} \rangle$", r"$\langle Q_\mathrm{D} \rangle$",
+         r"$\frac{dm_\mathrm{CV}}{dt}$"],
+        fontsize=legend_size, bbox_to_anchor=(1.0, 0.5),
+        loc='center left', ncol=1, frameon=False)
+    # Save the plot
+    plt.tight_layout()
+    plt.savefig(meta_data.output_dir + "/cv_volume.png", format='png')
+    plt.show()
+
+    gap_flow_plot = cv_mass.plot(
+        x="Normalized time",
+        y=["Gap volume flow"],
+        style=['-'],
+        color=['g'], markevery=20, lw=5)
+    apply_fig_settings(gap_flow_plot)
+    draw_open_close(gap_flow_plot)
+    gap_flow_plot.set_ylabel(
+        r"Volume Flow Rate ($cm^2/s$)", fontsize=label_size)
+    # Save the plot
+    plt.tight_layout()
+    plt.savefig(meta_data.output_dir + "/cv_gap_volume.png", format='png')
     plt.show()
 
 

@@ -164,9 +164,8 @@ plt.locator_params(axis='y', nbins=8)
 gap_time_full.tick_params(direction='in', length=20,
                           width=2, top=True, right=True)
 gap_time_full.get_legend().remove()
-gap_time_full.grid()
 gap_time_full.set_xlim([0.0, 0.24])
-gap_time_full.set_ylim([0.0, 1.0])
+gap_time_full.set_ylim([-0.08, 1.0])
 gap_time_full.set_xlabel("Time (s)", fontsize=axis_label_size)
 gap_time_full.set_ylabel("h (mm)", fontsize=axis_label_size)
 # Save the plot
