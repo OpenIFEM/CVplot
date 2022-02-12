@@ -34,6 +34,12 @@ class CVMetaData:
             if "period" in self._documents:
                 self._n_period = self._documents["period"]
 
+            if "size" in self._documents:
+                self._size = self._documents["size"]
+            else:
+                self._size = {"height": 11.25,
+                              "width": 22, "left": 0.2, "right": 0.8}
+
             # Average behavior reader
             if "average" in self._documents:
                 self._cases = self._documents["average"]
@@ -72,3 +78,7 @@ class CVMetaData:
     @property
     def cases(self):
         return self._cases
+
+    @property
+    def size(self):
+        return self._size

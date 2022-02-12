@@ -41,14 +41,19 @@ def create_momentum_frame(cv_data):
     cv_momentum["TGP force"] = -cv_data["Outlet pressure force"] + \
         cv_data["Inlet pressure force"]
     # Pressure decomposition
-    cv_momentum["2P_LS"] = (cv_momentum["Inlet pressure force"] +
-                            cv_data["Inlet volume flow"] * rho * c)
+    cv_momentum["2P_A^+S"] = (cv_momentum["Inlet pressure force"] +
+                              cv_data["Inlet volume flow"] * rho * c)
     cv_momentum["-P_DS"] = -cv_momentum["Outlet pressure force"]
-    cv_momentum["Built-up pressure force"] = cv_momentum["2P_LS"]
+    cv_momentum["2P_D^-S"] = -(cv_data["Outlet pressure force"] -
+                               cv_data["Outlet volume flow"] * rho * c)
+    cv_momentum["Built-up pressure force"] = cv_momentum["2P_A^+S"] - \
+        cv_momentum["2P_D^-S"]
     # Drag
     cv_momentum["-VF drag"] = -cv_momentum["VF drag"]
     # Volume source
-    cv_momentum["Volume source"] = (
+    cv_momentum["Volume source"] = - (
+        cv_data["Outlet volume flow"] - cv_data["Inlet volume flow"]) * rho * c
+    cv_momentum["Radiated pressure force"] = -(
         cv_data["Outlet volume flow"] + cv_data["Inlet volume flow"]) * rho * c
     # Convert the unit
     for label, content in cv_momentum.items():
@@ -70,13 +75,15 @@ cv_momentum["-Momentum total change"] = - cv_momentum["Momentum change rate"] + 
     cv_momentum["Momentum influx"]
 
 # Figure properties
-height = 938/80
-width = 1266/80
+height = meta_data.size["height"]
+width = meta_data.size["width"]
 label_size = 36
 plt.rcParams["figure.figsize"] = [width, height]
 plt.rcParams["legend.fontsize"] = label_size
 plt.rcParams["xtick.labelsize"] = label_size
 plt.rcParams["ytick.labelsize"] = label_size
+plt.rcParams["figure.subplot.left"] = meta_data.size["left"]
+plt.rcParams["figure.subplot.right"] = meta_data.size["right"]
 
 
 def apply_fig_settings(fig):
@@ -87,6 +94,11 @@ def apply_fig_settings(fig):
     fig.get_legend().remove()
     fig.grid()
     fig.set_xlim(normalized_timespan)
+    # Use ylim in plot settings if given
+    if ("ylim" in item for item in documents["pressure"]):
+        ylim = next(d for i, d in enumerate(
+            documents["momentum"]) if "ylim" in d)
+        fig.set_ylim(ylim["ylim"])
     fig.set_xlabel("t/T", fontsize=axis_label_size)
     fig.set_ylabel("Momentum Equation Terms (N)", fontsize=axis_label_size)
 
@@ -100,7 +112,7 @@ def draw_open_close(fig):
 
 
 def update_xlabels(fig):
-    ylabels = [format(label, '.3f') for label in fig.get_yticks()]
+    ylabels = [format(label, '.2f') for label in fig.get_yticks()]
     fig.set_yticklabels(ylabels)
 
 
@@ -115,7 +127,7 @@ apply_fig_settings(fig_11a)
 draw_open_close(fig_11a)
 update_xlabels(fig_11a)
 # Save the plot
-plt.tight_layout()
+# plt.tight_layout()
 plt.savefig(meta_data.output_dir + "/11a.png", format='png')
 
 # Fig 11.b: Fp, FpD, Ff, -Pcv
@@ -129,7 +141,7 @@ apply_fig_settings(fig_11b)
 draw_open_close(fig_11b)
 update_xlabels(fig_11b)
 # Save the plot
-plt.tight_layout()
+# plt.tight_layout()
 plt.savefig(meta_data.output_dir + "/11b.png", format='png')
 
 # Fig 11.c: Fp + FpD, Ff, -Pcv
@@ -141,9 +153,35 @@ apply_fig_settings(fig_11c)
 draw_open_close(fig_11c)
 update_xlabels(fig_11c)
 # Save the plot
-plt.tight_layout()
 plt.savefig(meta_data.output_dir + "/11c.png", format='png')
 plt.show()
+
+width_scaling = 1.25
+plt.rcParams["figure.figsize"] = [width*width_scaling, height]
+plt.rcParams["figure.subplot.left"] = (
+    meta_data.size["left"] + (width_scaling - 1) / 2) / width_scaling
+plt.rcParams["figure.subplot.right"] = (
+    meta_data.size["right"] + (width_scaling - 1) / 2) / width_scaling
+plt.rcParams["legend.fontsize"] = 33
+# Overall in momentum equation
+momentum_overall = cv_momentum.plot(
+    x="Normalized time", y=["TGP force", "-VF drag", "Friction force",
+                            "Momentum change rate", "Momentum efflux"],
+    style=['-', '--', '-.', '-', '--'], color=['b', 'g', 'r', 'm', 'k'], lw=5)
+apply_fig_settings(momentum_overall)
+draw_open_close(momentum_overall)
+update_xlabels(momentum_overall)
+momentum_overall.legend(
+    ["TGP force",
+     "-VF drag",
+     "Friction force",
+     "Momentum change rate",
+     "Momentum efflux"],
+    bbox_to_anchor=(1.0, 0.5),
+    loc='center left', fontsize=30, ncol=1, labelspacing=2, frameon=False)
+# Save the plot
+plt.savefig(meta_data.output_dir + "/cv_source_overall.png", format='png')
+
 
 # Plot volume source and drag soruce
 volume_drag_source = cv_momentum.plot(
@@ -152,20 +190,47 @@ volume_drag_source = cv_momentum.plot(
 apply_fig_settings(volume_drag_source)
 draw_open_close(volume_drag_source)
 update_xlabels(volume_drag_source)
+volume_drag_source.legend(
+    ["Volume source",
+     "-VF drag", ],
+    bbox_to_anchor=(1.0, 0.5),
+    loc='center left', ncol=1, labelspacing=2, frameon=False)
 # Save the plot
-plt.tight_layout()
 plt.savefig(meta_data.output_dir + "/cv_source_volume_drag.png", format='png')
 plt.show()
 
 # Plot TGP decomposition
 tgp_decomp_a = cv_momentum.plot(
-    x="Normalized time", y=["2P_LS", "TGP force", "Inlet pressure force", "-P_DS"],
-    style=['-', '--', '-.', '-'], color=['b', 'g', 'r', 'm'], lw=5)
+    x="Normalized time", y=["TGP force", "Inlet pressure force", "-P_DS"],
+    style=['-', '--', '-.'], color=['b', 'g', 'r'], lw=5)
 apply_fig_settings(tgp_decomp_a)
 draw_open_close(tgp_decomp_a)
 update_xlabels(tgp_decomp_a)
+tgp_decomp_a.legend(
+    ["TGP force",
+     r"$\langle p_\mathrm{A} \rangle S_\mathrm{VT}$",
+     r"$-\langle p_\mathrm{D} \rangle S_\mathrm{VT}$"],
+    bbox_to_anchor=(1.0, 0.5),
+    loc='center left', ncol=1, labelspacing=2, frameon=False)
 # Save the plot
-plt.tight_layout()
 plt.savefig(meta_data.output_dir +
             "/cv_source_tgp_decomposition_a.png", format='png')
+plt.show()
+
+tgp_decomp_b = cv_momentum.plot(
+    x="Normalized time", y=["TGP force", "Built-up pressure force",
+                            "Radiated pressure force"],
+    style=['-', '--', '-.'], color=['b', 'g', 'r'], lw=5)
+apply_fig_settings(tgp_decomp_b)
+draw_open_close(tgp_decomp_b)
+update_xlabels(tgp_decomp_b)
+tgp_decomp_b.legend(
+    ["TGP force",
+     r"$2(\langle{p}_\mathrm{A}^+\rangle -\langle{p}_\mathrm{D}^-\rangle) S_\mathrm{VT}$",
+     r"$-(\frac{\rho c}{S}\langle{Q}_\mathrm{A}\rangle+\frac{\rho c}{S}\langle{Q}_\mathrm{D}\rangle)$"],
+    bbox_to_anchor=(1.0, 0.5),
+    loc='center left', ncol=1, labelspacing=2, frameon=False)
+# Save the plot
+plt.savefig(meta_data.output_dir +
+            "/cv_source_tgp_decomposition_b.png", format='png')
 plt.show()

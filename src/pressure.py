@@ -69,13 +69,15 @@ def main():
     smooth_data(cv_pressure, meta_data, smooth_range)
 
     # Figure properties
-    height = 938/80
-    width = 1266/80
+    height = meta_data.size["height"]
+    width = meta_data.size["width"]
     label_size = 36
     plt.rcParams["figure.figsize"] = [width, height]
     plt.rcParams["legend.fontsize"] = label_size
     plt.rcParams["xtick.labelsize"] = label_size
     plt.rcParams["ytick.labelsize"] = label_size
+    plt.rcParams["figure.subplot.left"] = meta_data.size["left"]
+    plt.rcParams["figure.subplot.right"] = meta_data.size["right"]
 
     def apply_fig_settings(fig):
         axis_label_size = 36
@@ -85,24 +87,20 @@ def main():
         fig.get_legend().remove()
         fig.grid()
         fig.set_xlim(normalized_timespan)
-        fig.set_xlabel("t/T", fontsize=axis_label_size)
-        fig.set_ylabel("Pressure (Pa)", fontsize=axis_label_size)
-
-    def draw_open_close(fig):
-        fig.set_ylim(fig.get_ylim())
         # Use ylim in plot settings if given
         if ("ylim" in item for item in documents["pressure"]):
             ylim = next(d for i, d in enumerate(
                 documents["pressure"]) if "ylim" in d)
             fig.set_ylim(ylim["ylim"])
+        fig.set_xlabel("t/T", fontsize=axis_label_size)
+        fig.set_ylabel("Pressure (Pa)", fontsize=axis_label_size)
+
+    def draw_open_close(fig):
+        fig.set_ylim(fig.get_ylim())
         plt.plot([meta_data.open_glottis[0], meta_data.open_glottis[0]],
                  fig.get_ylim(), 'r--', linewidth=4)
         plt.plot([meta_data.open_glottis[1], meta_data.open_glottis[1]],
                  fig.get_ylim(), 'r--', linewidth=4)
-
-    def update_xlabels(fig):
-        ylabels = [format(label, '.0f') for label in fig.get_yticks()]
-        fig.set_yticklabels(ylabels)
 
     # Plots
     pressure_waveform = cv_pressure.plot(
@@ -110,13 +108,10 @@ def main():
         style=['-', '--'], color=['b', 'g'], markevery=50, lw=5)
     apply_fig_settings(pressure_waveform)
     draw_open_close(pressure_waveform)
-    update_xlabels(pressure_waveform)
     pressure_waveform.legend(
         [r"$\langle p_\mathrm{A} \rangle$", r"$\langle p_\mathrm{D} \rangle$"],
         bbox_to_anchor=(1.0, 0.5),
-        loc='center left', ncol=1, frameon=False)
-    # Save the plot
-    plt.tight_layout()
+        loc='center left', ncol=1, labelspacing=2, frameon=False)
     plt.savefig(meta_data.output_dir +
                 "/cv_pressure_waveform.png", format='png')
     plt.show()
@@ -127,14 +122,12 @@ def main():
         style=['-', '--', '-.'], color=['b', 'g', 'r'], markevery=50, lw=5)
     apply_fig_settings(entrance_decomp_a)
     draw_open_close(entrance_decomp_a)
-    update_xlabels(entrance_decomp_a)
     entrance_decomp_a.legend(
         [r"$\langle p_\mathrm{A} \rangle$", r"$\langle p_\mathrm{A}^+ \rangle$",
          r"$\langle p_\mathrm{A}^- \rangle$"],
         bbox_to_anchor=(1.0, 0.5),
-        loc='center left', ncol=1, frameon=False)
+        loc='center left', ncol=1, labelspacing=2, frameon=False)
     # Save the plot
-    plt.tight_layout()
     plt.savefig(meta_data.output_dir +
                 "/cv_entrance_pressure_decomposition_a.png", format='png')
     plt.show()
@@ -146,14 +139,11 @@ def main():
         style=['-', '--', '-.'], color=['b', 'g', 'r'], markevery=50, lw=5)
     apply_fig_settings(entrance_decomp_b)
     draw_open_close(entrance_decomp_b)
-    update_xlabels(entrance_decomp_b)
     entrance_decomp_b.legend(
         [r"$\langle p_\mathrm{A} \rangle$", r"$2\langle p_\mathrm{A}^+ \rangle$",
          r"$-\frac{\rho c}{S}\langle Q_\mathrm{A}^- \rangle$"],
         bbox_to_anchor=(1.0, 0.5),
-        loc='center left', ncol=1, frameon=False)
-    # Save the plot
-    plt.tight_layout()
+        loc='center left', ncol=1, labelspacing=2, frameon=False)
     plt.savefig(meta_data.output_dir +
                 "/cv_entrance_pressure_decomposition_b.png", format='png')
     plt.show()
@@ -164,14 +154,11 @@ def main():
         style=['-', '--', '-.'], color=['b', 'g', 'r'], markevery=50, lw=5)
     apply_fig_settings(exit_decomp_a)
     draw_open_close(exit_decomp_a)
-    update_xlabels(exit_decomp_a)
     exit_decomp_a.legend(
         [r"$\langle p_\mathrm{D} \rangle$", r"$\langle p_\mathrm{D}^+ \rangle$",
          r"$\langle p_\mathrm{D}^- \rangle$"],
         bbox_to_anchor=(1.0, 0.5),
-        loc='center left', ncol=1, frameon=False)
-    # Save the plot
-    plt.tight_layout()
+        loc='center left', ncol=1, labelspacing=2, frameon=False)
     plt.savefig(meta_data.output_dir +
                 "/cv_exit_pressure_decomposition_a.png", format='png')
     plt.show()
@@ -183,14 +170,11 @@ def main():
         style=['-', '--', '-.'], color=['b', 'g', 'r'], markevery=50, lw=5)
     apply_fig_settings(exit_decomp_b)
     draw_open_close(exit_decomp_b)
-    update_xlabels(exit_decomp_b)
     exit_decomp_b.legend(
         [r"$\langle p_\mathrm{D} \rangle$", r"$2\langle p_\mathrm{D}^- \rangle$",
          r"$-\frac{\rho c}{S}\langle Q_\mathrm{D}^- \rangle$"],
         bbox_to_anchor=(1.0, 0.5),
-        loc='center left', ncol=1, frameon=False)
-    # Save the plot
-    plt.tight_layout()
+        loc='center left', ncol=1, labelspacing=2, frameon=False)
     plt.savefig(meta_data.output_dir +
                 "/cv_exit_pressure_decomposition_b.png", format='png')
     plt.show()

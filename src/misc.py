@@ -71,13 +71,15 @@ smooth_range = 100
 smooth_data(on_fly_data, meta_data, smooth_range)
 
 # Figure properties
-height = 938/80
-width = 1266/80
+height = meta_data.size["height"]
+width = meta_data.size["width"]
 label_size = 36
 axis_label_size = 36
 plt.rcParams["figure.figsize"] = [width, height]
 plt.rcParams["xtick.labelsize"] = label_size
 plt.rcParams["ytick.labelsize"] = label_size
+plt.rcParams["figure.subplot.left"] = meta_data.size["left"]
+plt.rcParams["figure.subplot.right"] = meta_data.size["right"]
 
 
 def apply_fig_settings(fig):
@@ -108,7 +110,6 @@ draw_open_close(max_vel)
 max_vel.set_xlabel("t/T", fontsize=axis_label_size)
 max_vel.set_ylabel("Maximum velocity (m/s)", fontsize=axis_label_size)
 # Save the plot
-plt.tight_layout()
 plt.savefig(meta_data.output_dir + "/max_vel.png", format='png')
 
 pressure_time = on_fly_data.plot(
@@ -121,7 +122,6 @@ draw_open_close(pressure_time)
 pressure_time.set_xlabel("t/T", fontsize=axis_label_size)
 pressure_time.set_ylabel("Mouth pressure (Pa)", fontsize=axis_label_size)
 # Save the plot
-plt.tight_layout()
 plt.savefig(meta_data.output_dir + "/pressure_time_domaion.png", format='png')
 plt.show()
 
@@ -135,7 +135,6 @@ draw_open_close(gap_time)
 gap_time.set_xlabel("t/T", fontsize=axis_label_size)
 gap_time.set_ylabel("Gap width (mm)", fontsize=axis_label_size)
 # Save the plot
-plt.tight_layout()
 plt.savefig(meta_data.output_dir + "/gap_time_domaion.png", format='png')
 plt.show()
 
@@ -145,8 +144,8 @@ plt.plot(freq, resonance, 'k--', lw=4)
 plt.yscale("log")
 plt.xlim([0, 2000])
 plt.ylim([1e-12, 1e3])
-plt.xlabel("Frequency (Hz)", fontsize=28)
-plt.ylabel("PSD", fontsize=28)
+plt.xlabel("Frequency (Hz)", fontsize=axis_label_size)
+plt.ylabel("PSD", fontsize=axis_label_size)
 plt.grid()
 plt.legend(["$p_{m}$ ($Pa^2/Hz$)", "$h_{g}$ ($mm^2/Hz$)"], fontsize=28)
 plt.tight_layout()
@@ -159,13 +158,19 @@ gap_time_full = gap_data.plot(
     x="Time",
     y=["Gap"],
     style=['-'],
-    color=['b'], lw=3, figsize=(width*1.5, height*0.36))
+    color=['b'], lw=3, figsize=(width*1.2, height*0.5))
 plt.locator_params(axis='y', nbins=8)
 gap_time_full.tick_params(direction='in', length=20,
                           width=2, top=True, right=True)
 gap_time_full.get_legend().remove()
 gap_time_full.set_xlim([0.0, 0.24])
 gap_time_full.set_ylim([-0.08, 1.0])
+# Draw span of interest
+gap_time_full.set_ylim(gap_time_full.get_ylim())
+plt.plot([meta_data.timespan[0], meta_data.timespan[0]],
+         gap_time_full.get_ylim(), 'r--', linewidth=4)
+plt.plot([meta_data.timespan[1], meta_data.timespan[1]],
+         gap_time_full.get_ylim(), 'r--', linewidth=4)
 gap_time_full.set_xlabel("Time (s)", fontsize=axis_label_size)
 gap_time_full.set_ylabel("h (mm)", fontsize=axis_label_size)
 # Save the plot

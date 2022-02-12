@@ -82,13 +82,15 @@ def main():
     #     f"gap mass flow at max res is {gap_mass_flow_max_res / max_gap_mass_flow}")
 
     # Figure properties
-    height = 938/80
-    width = 1266/80
+    height = meta_data.size["height"]
+    width = meta_data.size["width"]
     label_size = 36
     legend_size = 36
     plt.rcParams["figure.figsize"] = [width, height]
     plt.rcParams["xtick.labelsize"] = label_size
     plt.rcParams["ytick.labelsize"] = label_size
+    plt.rcParams["figure.subplot.left"] = meta_data.size["left"]
+    plt.rcParams["figure.subplot.right"] = meta_data.size["right"]
 
     def apply_fig_settings(fig):
         axis_label_size = 36
@@ -123,7 +125,6 @@ def main():
     apply_fig_settings(fig_10)
     draw_open_close(fig_10)
     # Save the plot
-    plt.tight_layout()
     plt.savefig(meta_data.output_dir + "/10.png", format='png')
 
     fig_8b = cv_mass.plot(
@@ -151,11 +152,9 @@ def main():
 
     fig_8b.yaxis.set_major_formatter(OOMFormatter(order=-3))
     # Save the plot
-    plt.tight_layout()
     plt.savefig(meta_data.output_dir + "/glottal_flow.png", format='png')
     plt.show()
 
-    plt.rcParams["figure.figsize"] = [width*1.2, height]
     volume_plot = cv_mass.plot(
         x="Normalized time",
         y=["Inlet volume flow", "Outlet volume flow",
@@ -165,14 +164,13 @@ def main():
     apply_fig_settings(volume_plot)
     draw_open_close(volume_plot)
     volume_plot.set_ylabel(
-        r"Volume Flow Rate ($cm^2/s$)", fontsize=label_size)
+        r"Volume Flow Rate ($cm^3/s$)", fontsize=label_size)
     volume_plot.legend(
         [r"$\langle Q_\mathrm{A} \rangle$", r"$\langle Q_\mathrm{D} \rangle$",
          r"$\frac{dm_\mathrm{CV}}{dt}$"],
         fontsize=legend_size, bbox_to_anchor=(1.0, 0.5),
         loc='center left', ncol=1, frameon=False)
     # Save the plot
-    plt.tight_layout()
     plt.savefig(meta_data.output_dir + "/cv_volume.png", format='png')
     plt.show()
 
@@ -184,9 +182,8 @@ def main():
     apply_fig_settings(gap_flow_plot)
     draw_open_close(gap_flow_plot)
     gap_flow_plot.set_ylabel(
-        r"Volume Flow Rate ($cm^2/s$)", fontsize=label_size)
+        r"Volume Flow Rate ($cm^3/s$)", fontsize=label_size)
     # Save the plot
-    plt.tight_layout()
     plt.savefig(meta_data.output_dir + "/cv_gap_volume.png", format='png')
     plt.show()
 

@@ -1,3 +1,4 @@
+from distutils.log import error
 import sys
 from unittest import case
 from xmlrpc.client import Boolean
@@ -61,7 +62,7 @@ for lung_pressure, path in meta_data.cases.items():
     cv_merged["Outlet pressure work"] = cv_data["Outlet pressure work"] * to_watt
     cv_merged["P_A^+Q_A"] = cv_merged["2P_A^+Q_A"] / 2
     cv_merged["P_D^-Q_D"] = cv_merged["2P_D^-Q_D"] / 2
-    cv_merged["Q_A+Q_D"] = cv_merged["Radiated pressure"] * S / rho / c
+    cv_merged["Q_A+Q_D"] = cv_merged["Radiated pressure"] / to_pa * S / rho / c
     for label, content in cv_merged.items():
         # Skip time and duplicate
         if label == "Time" or label == "Normalized time" or label[-5:] == "_copy":
@@ -82,17 +83,19 @@ for lung_pressure, path in meta_data.cases.items():
     gap_data_all["Time"] = gap_data["Time"].copy()
     gap_data_all[f"{lung_pressure}"] = gap_data["Gap"].copy() * to_mm
     # Efficiency
-    data_collection["Efficiency_mean"].append(-(compute_budget(cv_merged, meta_data)[
-        "Acoustic output"]))
+    data_collection["Efficiency_mean"].append(-data_collection["Acoustic output_mean"][-1] /
+                                              data_collection["Pressure input_mean"][-1])
 
 # Figure properties
-height = 960/80
-width = 1280/80
+height = meta_data.size["height"]
+width = meta_data.size["width"]
 label_size = 36
 plt.rcParams["figure.figsize"] = [width, height]
 plt.rcParams["legend.fontsize"] = label_size
 plt.rcParams["xtick.labelsize"] = label_size
 plt.rcParams["ytick.labelsize"] = label_size
+plt.rcParams["figure.subplot.left"] = meta_data.size["left"]
+plt.rcParams["figure.subplot.right"] = meta_data.size["right"]
 plt.rcParams["font.size"] = label_size
 
 
@@ -108,7 +111,7 @@ def plot_stats(y_axis_names: list, x_axis_name: str, linespecs: list, colors: li
             plt.errorbar(
                 data_collection[x_axis_name], data_collection[mean_name],
                 yerr=data_collection[stdev_name],
-                capsize=20, capthick=5,
+                capsize=20, capthick=5, label=name,
                 linestyle=line, marker=">", color=color,
                 markersize=35, lw=5)
         else:
@@ -116,6 +119,12 @@ def plot_stats(y_axis_names: list, x_axis_name: str, linespecs: list, colors: li
                 data_collection[x_axis_name], data_collection[mean_name],
                 linestyle=line, marker=">", color=color,
                 markersize=35, lw=5)
+    # get handles
+    handles, labels = plt.gca().get_legend_handles_labels()
+    # remove the errorbars
+    if errorbar:
+        handles = [h[0] for h in handles]
+    return handles
 
 
 def apply_fig_settings(fig):
@@ -124,22 +133,32 @@ def apply_fig_settings(fig):
                     width=2, top=True, right=True)
 
 
+width_scaling = 1.25
+height_scaling = 1.01
+plt.rcParams["figure.figsize"] = [width*width_scaling, height*height_scaling]
+plt.rcParams["figure.subplot.left"] = (
+    meta_data.size["left"] + (width_scaling - 1) / 2) / width_scaling
+plt.rcParams["figure.subplot.right"] = (
+    meta_data.size["right"] + (width_scaling - 1) / 2) / width_scaling
+plt.rcParams["figure.subplot.bottom"] = (
+    plt.rcParams["figure.subplot.bottom"] + height_scaling - 1) / height_scaling
 # Plot
 # Fig: mean subglottal and transglottal pressure vs mean volume flow
 fig = plt.figure()
 pa_tgp_vs_volume_flow = fig.add_subplot(1, 1, 1)
 y_axis_names = ["P_A", "TGP"]
 x_axis_name = "Q_A+Q_D"
-plot_stats(y_axis_names, x_axis_name, ["-", "--"], ["b", "g"], True)
+handles = plot_stats(y_axis_names, x_axis_name, ["-", "--"], ["b", "g"], True)
 apply_fig_settings(pa_tgp_vs_volume_flow)
 pa_tgp_vs_volume_flow.legend(
+    handles,
     [r"$\overline{p_\mathrm{A}}$",
      r"$\overline{p_\mathrm{A}} - \overline{p_\mathrm{D}}$"],
     bbox_to_anchor=(1.0, 0.5),
-    loc='center left', ncol=1, frameon=False)
-plt.xlabel(r"$\overline{Q_\mathrm{A}} + \overline{Q_\mathrm{D}}$ (Pa)")
+    loc='center left', ncol=1, labelspacing=2, numpoints=1, frameon=False)
+plt.xlabel(
+    r"$\overline{Q_\mathrm{A}} + \overline{Q_\mathrm{D}} (cm^3/s)$")
 plt.ylabel("Pressure (Pa)")
-plt.tight_layout()
 plt.savefig(meta_data.output_dir +
             "/cv_stats_pa_tgp_vs_volume_flow.png", format='png')
 plt.show()
@@ -150,16 +169,16 @@ fig = plt.figure()
 pap_vs_pa = fig.add_subplot(1, 1, 1)
 y_axis_names = ["Entrance built-up pressure", "P_A"]
 x_axis_name = "P_A"
-plot_stats(y_axis_names, x_axis_name, ["-", "--"], ["b", "g"], True)
+handles = plot_stats(y_axis_names, x_axis_name, ["-", "--"], ["b", "g"], True)
 apply_fig_settings(pap_vs_pa)
 pap_vs_pa.legend(
+    handles,
     [r"$2\overline{p_\mathrm{L}}$",
      r"$\overline{p_\mathrm{A}}$"],
     bbox_to_anchor=(1.0, 0.5),
-    loc='center left', ncol=1, frameon=False)
-plt.xlabel(r"$\overline{Q_\mathrm{A}}$ (Pa)")
+    loc='center left', ncol=1, labelspacing=2, frameon=False)
+plt.xlabel(r"$\overline{p_\mathrm{A}}$ (Pa)")
 plt.ylabel("Pressure (Pa)")
-plt.tight_layout()
 plt.savefig(meta_data.output_dir +
             "/cv_stats_pap_vs_sub_p.png", format='png')
 plt.show()
@@ -169,11 +188,19 @@ fig = plt.figure()
 inlet_works_vs_drive_p = fig.add_subplot(1, 1, 1)
 y_axis_names = ["Inlet pressure work", "P_A^+Q_A", "Acoustic loss"]
 x_axis_name = "Driving pressure work"
-plot_stats(y_axis_names, x_axis_name, ["-", "--", "-."], ["b", "g", "r"], True)
+handles = plot_stats(y_axis_names, x_axis_name, [
+                     "-", "--", "-."], ["b", "g", "r"], True)
 apply_fig_settings(inlet_works_vs_drive_p)
-plt.xlabel("Mean Driving Pressure Work (Watts)")
-plt.ylabel("Pressure Work (Watts)")
-plt.tight_layout()
+inlet_works_vs_drive_p.legend(
+    handles,
+    [r"$\overline{p_\mathrm{A}Q_\mathrm{A}}$",
+     r"$\overline{p_\mathrm{A}^+Q_\mathrm{A}}$",
+     r"$-\frac{\rho c}{S_\mathrm{VT}}\overline{Q_\mathrm{A}^2}$"],
+    bbox_to_anchor=(1.0, 0.5),
+    loc='center left', ncol=1, labelspacing=2, frameon=False)
+plt.xlabel(
+    r"$\overline{p_\mathrm{A}Q_\mathrm{A}} - \overline{p_\mathrm{D}Q_\mathrm{D}}$ (Watts)")
+plt.ylabel("Flow Work (Watts)")
 plt.savefig(meta_data.output_dir +
             "/cv_stats_inlet_work_decomposition.png", format='png')
 plt.show()
@@ -183,11 +210,19 @@ fig = plt.figure()
 outlet_works_vs_drive_p = fig.add_subplot(1, 1, 1)
 y_axis_names = ["Outlet pressure work", "P_D^-Q_D", "Acoustic output"]
 x_axis_name = "Driving pressure work"
-plot_stats(y_axis_names, x_axis_name, ["-", "--", "-."], ["b", "g", "r"], True)
+handles = plot_stats(y_axis_names, x_axis_name, [
+                     "-", "--", "-."], ["b", "g", "r"], True)
 apply_fig_settings(outlet_works_vs_drive_p)
-plt.xlabel("Mean Driving Pressure Work (Watts)")
-plt.ylabel("Pressure Work (Watts)")
-plt.tight_layout()
+outlet_works_vs_drive_p.legend(
+    handles,
+    [r"$\overline{p_\mathrm{D}Q_\mathrm{D}}$",
+     r"$\overline{p_\mathrm{D}^-Q_\mathrm{D}}$",
+     r"$-\frac{\rho c}{S_\mathrm{VT}}\overline{Q_\mathrm{D}^2}$"],
+    bbox_to_anchor=(1.0, 0.5),
+    loc='center left', ncol=1, labelspacing=2, frameon=False)
+plt.xlabel(
+    r"$\overline{p_\mathrm{A}Q_\mathrm{A}} - \overline{p_\mathrm{D}Q_\mathrm{D}}$ (Watts)")
+plt.ylabel("Flow Work (Watts)")
 plt.savefig(meta_data.output_dir +
             "/cv_stats_outlet_work_decomposition.png", format='png')
 plt.show()
@@ -198,27 +233,35 @@ tot_works_vs_drive_p = fig.add_subplot(1, 1, 1)
 y_axis_names = ["Driving pressure work",
                 "Pressure input", "Net acoustic power flow"]
 x_axis_name = "Driving pressure work"
-plot_stats(y_axis_names, x_axis_name, ["-", "--", "-."], ["b", "g", "r"], True)
+handles = plot_stats(y_axis_names, x_axis_name, [
+                     "-", "--", "-."], ["b", "g", "r"], True)
 apply_fig_settings(tot_works_vs_drive_p)
-plt.xlabel("Mean Driving Pressure Work (Watts)")
-plt.ylabel("Pressure Work (Watts)")
-plt.tight_layout()
+tot_works_vs_drive_p.legend(
+    handles,
+    [r"$\overline{p_\mathrm{A}Q_\mathrm{A}} - \overline{p_\mathrm{D}Q_\mathrm{D}}$",
+     r"$\overline{p_\mathrm{A}^+Q_\mathrm{A}} - \overline{p_\mathrm{D}^-Q_\mathrm{D}}$",
+     r"$-\frac{\rho c}{S_\mathrm{VT}}(\overline{Q_\mathrm{A}^2} + \overline{Q_\mathrm{D}^2})$"],
+    bbox_to_anchor=(1.0, 0.5),
+    loc='center left', ncol=1, labelspacing=2, frameon=False)
+plt.xlabel(
+    r"$\overline{p_\mathrm{A}Q_\mathrm{A}} - \overline{p_\mathrm{D}Q_\mathrm{D}}$ (Watts)")
+plt.ylabel("Flow Work (Watts)")
 plt.savefig(meta_data.output_dir +
             "/cv_stats_total_work_decomposition.png", format='png')
 plt.show()
 
-# Fig: Flow work vs. driving pressure
+# Fig: Efficiency vs. driving pressure
 fig = plt.figure()
 efficiency_vs_pa = fig.add_subplot(1, 1, 1)
 y_axis_names = ["Efficiency"]
-x_axis_name = "P_A"
-plot_stats(y_axis_names, x_axis_name, ["-"], ["b"], False)
+x_axis_name = "Driving pressure work"
+handles = plot_stats(y_axis_names, x_axis_name, ["-"], ["b"], False)
 apply_fig_settings(efficiency_vs_pa)
 ylabels = [format(label, '.1%') for label in efficiency_vs_pa.get_yticks()]
 efficiency_vs_pa.set_yticklabels(ylabels)
-plt.xlabel("Mean Subglottal Pressure (Pa)")
+plt.xlabel(
+    r"$\overline{p_\mathrm{A}Q_\mathrm{A}} - \overline{p_\mathrm{D}Q_\mathrm{D}}$ (Watts)")
 plt.ylabel("Laryngeal Efficiency")
-plt.tight_layout()
 plt.savefig(meta_data.output_dir +
             "/cv_stats_efficiency.png", format='png')
 plt.show()
@@ -227,7 +270,7 @@ plt.show()
 case_inputs = [r"$p_\mathrm{L}$" + f"= {i} Pa" for i in meta_data.cases.keys()]
 # All time gap history
 gap_time_all_zoomed_out = gap_data_all.plot(
-    x="Time", lw=2, figsize=(width*1.5, height*0.6))
+    x="Time", lw=2, figsize=(width*1.2, height*0.5))
 plt.locator_params(axis='y', nbins=8)
 gap_time_all_zoomed_out.tick_params(direction='in', length=20,
                                     width=2, top=True, right=True)
@@ -252,7 +295,8 @@ gap_time_all_zoomed_in.tick_params(direction='in', length=20,
                                    width=2, top=True, right=True)
 gap_time_all_zoomed_in.legend(case_inputs,
                               bbox_to_anchor=(1.0, 0.5),
-                              loc='center left', ncol=1, frameon=False)
+                              loc='center left', ncol=1,
+                              labelspacing=2, frameon=False)
 # gap_time_all_zoomed_in.set_xlim(meta_data.timespan)
 gap_time_all_zoomed_in.set_xlim(0.135, 0.15)
 gap_time_all_zoomed_in.set_ylim([-0.08, 1.2])

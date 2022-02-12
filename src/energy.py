@@ -134,13 +134,15 @@ def main():
     smooth_data(cv_energy, meta_data, smooth_range)
 
     # Figure properties
-    height = 938/80
-    width = 1266/80
+    height = meta_data.size["height"]
+    width = meta_data.size["width"]
     label_size = 36
     plt.rcParams["figure.figsize"] = [width, height]
     plt.rcParams["legend.fontsize"] = label_size
     plt.rcParams["xtick.labelsize"] = label_size
     plt.rcParams["ytick.labelsize"] = label_size
+    plt.rcParams["figure.subplot.left"] = meta_data.size["left"]
+    plt.rcParams["figure.subplot.right"] = meta_data.size["right"]
 
     def apply_fig_settings(fig):
         axis_label_size = 36
@@ -219,6 +221,13 @@ def main():
     plt.show()
 
     # Figure for decomposed pressure
+    width_scaling = 1.25
+    plt.rcParams["figure.figsize"] = [width*width_scaling, height]
+    plt.rcParams["figure.subplot.left"] = (
+        meta_data.size["left"] + (width_scaling - 1) / 2) / width_scaling
+    plt.rcParams["figure.subplot.right"] = (
+        meta_data.size["right"] + (width_scaling - 1) / 2) / width_scaling
+    plt.rcParams["legend.fontsize"] = 33
     # Net input, acoustic loss/output
     input_decomp_plot = cv_energy.plot(
         x="Normalized time", y=["Driving pressure work", "Pressure input", "Net acoustic power flow"],
@@ -231,8 +240,13 @@ def main():
             line.set_linewidth(6)
         else:
             line.set_linewidth(5)
+    input_decomp_plot.legend(
+        [r"$\langle{p}_\mathrm{A}\rangle\langle{Q}_\mathrm{A}\rangle-\langle{p}_\mathrm{D}\rangle\langle{Q}_\mathrm{D}\rangle$",
+         r"$2(\langle{p}_\mathrm{A}^+\rangle\langle{Q}_\mathrm{A}\rangle-\langle{p}_\mathrm{D}^-\rangle\langle{Q}_\mathrm{D}\rangle)$",
+         r"$-\frac{\rho c}{S}\langle{Q}_\mathrm{A}\rangle^2-\frac{\rho c}{S}\langle{Q}_\mathrm{D}\rangle^2$"],
+        bbox_to_anchor=(1.0, 0.5),
+        loc='center left', ncol=1, labelspacing=2, frameon=False)
     # Save the plot
-    plt.tight_layout()
     plt.savefig(meta_data.output_dir +
                 "/cv_energy_pressure_input_decomposition.png", format='png')
     plt.show()
@@ -249,13 +263,18 @@ def main():
             line.set_linewidth(6)
         else:
             line.set_linewidth(5)
+    entrance_decomp_plot.legend(
+        [r"$\langle{p}_\mathrm{A}\rangle\langle{Q}_\mathrm{A}\rangle$",
+         r"$2(\langle{p}_\mathrm{A}^+\rangle\langle{Q}_\mathrm{A}\rangle$",
+         r"$-\frac{\rho c}{S}\langle{Q}_\mathrm{A}\rangle^2$"],
+        bbox_to_anchor=(1.0, 0.5),
+        loc='center left', ncol=1, labelspacing=2, frameon=False)
     # Save the plot
-    plt.tight_layout()
     plt.savefig(meta_data.output_dir +
                 "/cv_energy_entrance_pressure_decomposition.png", format='png')
     plt.show()
 
-    # Entrance decomposition
+    # Exit decomposition
     exit_decomp_plot = cv_energy.plot(
         x="Normalized time", y=["Outlet pressure work", "2P_D^-Q_D", "Acoustic output"],
         style=["b-", "g--", "r-."])
@@ -267,14 +286,18 @@ def main():
             line.set_linewidth(6)
         else:
             line.set_linewidth(5)
+    exit_decomp_plot.legend(
+        [r"$\langle{p}_\mathrm{D}\rangle\langle{Q}_\mathrm{D}\rangle$",
+         r"$2(\langle{p}_\mathrm{D}^-\rangle\langle{Q}_\mathrm{D}\rangle$",
+         r"$-\frac{\rho c}{S}\langle{Q}_\mathrm{D}\rangle^2$"],
+        bbox_to_anchor=(1.0, 0.5),
+        loc='center left', ncol=1, labelspacing=2, frameon=False)
     # Save the plot
-    plt.tight_layout()
     plt.savefig(meta_data.output_dir +
                 "/cv_energy_exit_pressure_decomposition.png", format='png')
     plt.show()
 
     # All terms with pressure decomposition
-    plt.rcParams["figure.figsize"] = [width*1.2, height]
     energy_plot = cv_energy.plot(
         x="Normalized time", y=["Pressure input", "Acoustic loss", "Acoustic output",
                                 "Rate VF work", "Rate KE", "-KE efflux",  "Rate KE loss due to compression",
@@ -294,9 +317,8 @@ def main():
                      r"$-\dot{W}_\mathrm{VF}$", r"$-\dot{KE}_\mathrm{V}$", r"$-\dot{KE}_\mathrm{S}$", r"$-\dot{KE}_{VC}$",
                      r"$-\dot{W}_\mathrm{\nu}$", r"$\dot{PE}$", r"$-\dot{W}_\mathrm{f}$", r"$-\dot{W}_\mathrm{t}$"]
     energy_plot.legend(energy_legend, bbox_to_anchor=(1.0, 0.5),
-                       loc="center left", ncol=1, fontsize=26, frameon=False)
+                       loc="center left", ncol=1, frameon=False)
     # Save the plot
-    plt.tight_layout()
     plt.savefig(meta_data.output_dir +
                 "/cv_energy_overall.png", format='png')
     plt.show()

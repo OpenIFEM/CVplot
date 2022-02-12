@@ -105,14 +105,18 @@ def main():
     smooth_data(cv_bernoulli, meta_data, smooth_range)
 
     # Figure properties
-    height = 938/80
-    width = 1266/80
+    height = meta_data.size["height"]
+    width = meta_data.size["width"]
     label_size = 36
     plt.rcParams["figure.figsize"] = [width, height]
     plt.rcParams["xtick.labelsize"] = label_size
     plt.rcParams["ytick.labelsize"] = label_size
 
-    def apply_fig_settings(fig):
+
+plt.rcParams["figure.subplot.left"] = meta_data.size["left"]
+plt.rcParams["figure.subplot.right"] = meta_data.size["right"]
+
+   def apply_fig_settings(fig):
         axis_label_size = 36
         plt.locator_params(axis='y', nbins=8)
         fig.tick_params(direction='in', length=20,
@@ -144,7 +148,7 @@ def main():
              [0.15, 0.15], 'm', linewidth=5)
     plt.ylim([0.122, 0.153])
     draw_open_close(fig_8a)
-    plt.tight_layout()
+    # plt.tight_layout()
     plt.savefig(meta_data.output_dir + "/8a.png", format='png')
 
     fig_9a = cv_bernoulli.plot(
@@ -155,7 +159,7 @@ def main():
         color=['b', 'r', 'k', 'm', 'lightgreen'], markevery=20, lw=5)
     apply_fig_settings(fig_9a)
     draw_open_close(fig_9a)
-    plt.tight_layout()
+    # plt.tight_layout()
     plt.savefig(meta_data.output_dir + "/9a.png", format='png')
 
     fig_9b = cv_bernoulli.plot(
@@ -166,7 +170,7 @@ def main():
         color=['b', 'r', 'k', 'm', 'lightgreen'], markevery=20, lw=5)
     apply_fig_settings(fig_9b)
     draw_open_close(fig_9b)
-    plt.tight_layout()
+    # plt.tight_layout()
     plt.savefig(meta_data.output_dir + "/9b.png", format='png')
 
     fig_9c = cv_bernoulli.plot(
@@ -177,7 +181,7 @@ def main():
         color=['b', 'r', 'k', 'm', 'lightgreen'], markevery=20, lw=5)
     apply_fig_settings(fig_9c)
     draw_open_close(fig_9c)
-    plt.tight_layout()
+    # plt.tight_layout()
     plt.savefig(meta_data.output_dir + "/9c.png", format='png')
     plt.show()
 
