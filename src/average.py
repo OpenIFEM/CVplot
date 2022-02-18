@@ -11,7 +11,8 @@ from meta_data import CVMetaData
 
 from pressure import create_pressure_frame
 from mass import create_mass_frame
-from energy import compute_budget, create_energy_frame
+from energy import create_energy_frame
+from momentum import create_momentum_frame
 
 from cycler import cycler
 mpl.rcParams['axes.prop_cycle'] = cycler(color='bgrcmyk')
@@ -54,9 +55,14 @@ for lung_pressure, path in meta_data.cases.items():
     cv_pressure = filter_period(create_pressure_frame(cv_data))
     cv_mass = filter_period(create_mass_frame(cv_data))
     cv_energy = filter_period(create_energy_frame(cv_data, documents))
-    cv_merged = cv_pressure.merge(cv_mass, how="inner", on="Time",
-                                  suffixes=[None, "_copy"]).merge(cv_energy,
-                                                                  how="inner", on="Time", suffixes=[None, "_copy"])
+    cv_momentum = filter_period(create_momentum_frame(cv_data))
+    cv_merged = cv_pressure.merge(cv_mass, how="inner",
+                                  on="Time", suffixes=[None, "_copy"]
+                                  ).merge(cv_energy,
+                                          how="inner",
+                                          on="Time",
+                                          suffixes=[None, "_copy"]
+                                          ).merge(cv_momentum, how="inner", on="Time", suffixes=[None, "_copy"])
     # Additional terms
     cv_merged["Inlet pressure work"] = cv_data["Inlet pressure work"] * to_watt
     cv_merged["Outlet pressure work"] = cv_data["Outlet pressure work"] * to_watt
@@ -99,24 +105,27 @@ plt.rcParams["figure.subplot.right"] = meta_data.size["right"]
 plt.rcParams["font.size"] = label_size
 
 
-def plot_stats(y_axis_names: list, x_axis_name: str, linespecs: list, colors: list, errorbar: bool):
-    x_axis_name = x_axis_name + "_mean"
+def plot_stats(y_axis_names: list, x_axis_name: str, linespecs: list,
+               colors: list, errorbar: bool, x_stdev: bool = False,
+               y_stdev: bool = False):
+    x_axis_name = x_axis_name + "_mean" if x_stdev == False else x_axis_name + "_stdev"
     for i in range(len(y_axis_names)):
         name = y_axis_names[i]
         line = linespecs[i]
         color = colors[i]
         mean_name = name + "_mean"
         stdev_name = name + "_stdev"
+        name_used = mean_name if y_stdev == False else stdev_name
         if errorbar == True:
             plt.errorbar(
                 data_collection[x_axis_name], data_collection[mean_name],
                 yerr=data_collection[stdev_name],
                 capsize=20, capthick=5, label=name,
                 linestyle=line, marker=">", color=color,
-                markersize=35, lw=5)
+                markersize=35, lw=3)
         else:
             plt.plot(
-                data_collection[x_axis_name], data_collection[mean_name],
+                data_collection[x_axis_name], data_collection[name_used],
                 linestyle=line, marker=">", color=color,
                 markersize=35, lw=5)
     # get handles
@@ -133,13 +142,7 @@ def apply_fig_settings(fig):
                     width=2, top=True, right=True)
 
 
-width_scaling = 1.25
 height_scaling = 1.01
-plt.rcParams["figure.figsize"] = [width*width_scaling, height*height_scaling]
-plt.rcParams["figure.subplot.left"] = (
-    meta_data.size["left"] + (width_scaling - 1) / 2) / width_scaling
-plt.rcParams["figure.subplot.right"] = (
-    meta_data.size["right"] + (width_scaling - 1) / 2) / width_scaling
 plt.rcParams["figure.subplot.bottom"] = (
     plt.rcParams["figure.subplot.bottom"] + height_scaling - 1) / height_scaling
 # Plot
@@ -173,7 +176,7 @@ handles = plot_stats(y_axis_names, x_axis_name, ["-", "--"], ["b", "g"], True)
 apply_fig_settings(pap_vs_pa)
 pap_vs_pa.legend(
     handles,
-    [r"$2\overline{p_\mathrm{L}}$",
+    [r"$2\overline{p_\mathrm{A}^+}$",
      r"$\overline{p_\mathrm{A}}$"],
     bbox_to_anchor=(1.0, 0.5),
     loc='center left', ncol=1, labelspacing=2, frameon=False)
@@ -183,6 +186,85 @@ plt.savefig(meta_data.output_dir +
             "/cv_stats_pap_vs_sub_p.png", format='png')
 plt.show()
 
+# Fig: Efficiency vs. driving pressure
+fig = plt.figure()
+efficiency_vs_pa = fig.add_subplot(1, 1, 1)
+y_axis_names = ["Efficiency"]
+x_axis_name = "Driving pressure work"
+handles = plot_stats(y_axis_names, x_axis_name, ["-"], ["b"], False)
+apply_fig_settings(efficiency_vs_pa)
+ylabels = [format(label, '.1%') for label in efficiency_vs_pa.get_yticks()]
+efficiency_vs_pa.set_yticklabels(ylabels)
+plt.xlabel(
+    r"$\overline{p_\mathrm{A}Q_\mathrm{A}} - \overline{p_\mathrm{D}Q_\mathrm{D}}$ (Watts)")
+plt.ylabel("Laryngeal Efficiency")
+plt.savefig(meta_data.output_dir +
+            "/cv_stats_efficiency.png", format='png')
+plt.show()
+
+
+# Change size to fit legend
+width_scaling = 1.25
+plt.rcParams["figure.figsize"] = [width*width_scaling, height*height_scaling]
+plt.rcParams["figure.subplot.left"] = (
+    meta_data.size["left"] + (width_scaling - 1) / 2) / width_scaling
+plt.rcParams["figure.subplot.right"] = (
+    meta_data.size["right"] + (width_scaling - 1) / 2) / width_scaling
+
+
+# Fig: TGP force, drag force, radiated pressure force
+fig = plt.figure()
+tgp_drag_volume_source_mean = fig.add_subplot(1, 1, 1)
+y_axis_names = ["TGP force", "-VF drag", "Radiated pressure force"]
+x_axis_name = "Volume source"
+handles = plot_stats(y_axis_names, x_axis_name, [
+                     "-", "--", "-."], ["b", "g", "r"],
+                     False)
+apply_fig_settings(tgp_drag_volume_source_mean)
+tgp_drag_volume_source_mean.legend(
+    [r"TGP force",
+     r"VF drag",
+     r"$-\frac{\rho c}{S_\mathrm{VT}}(\overline{Q_\mathrm{A}}+\overline{Q_\mathrm{D}})$"],
+    bbox_to_anchor=(1.0, 0.5),
+    loc='center left', ncol=1, labelspacing=2, frameon=False)
+plt.xlabel(
+    r"$\rho c(\overline{Q_\mathrm{A}} + \overline{Q_\mathrm{D}})$(N)")
+plt.ylabel("Momentum Equation Terms (N)")
+plt.savefig(meta_data.output_dir +
+            "/cv_stats_tgp_drag_volume_source_mean.png", format='png')
+plt.show()
+
+fig = plt.figure()
+tgp_drag_volume_source_stdev = fig.add_subplot(1, 1, 1)
+y_axis_names = ["TGP force", "-VF drag", "Radiated pressure force"]
+x_axis_name = "Volume source"
+handles = plot_stats(y_axis_names, x_axis_name, [
+                     "-", "--", "-."], ["b", "g", "r"],
+                     False, x_stdev=True, y_stdev=True)
+apply_fig_settings(tgp_drag_volume_source_stdev)
+tgp_drag_volume_source_stdev.legend(
+    [r"$\sigma$: TGP force",
+     r"$\sigma$: VF drag",
+     r"$\sigma$: $-\frac{\rho c}{S_\mathrm{VT}}(Q_\mathrm{A}+Q_\mathrm{D})$"],
+    bbox_to_anchor=(1.0, 0.5),
+    loc='center left', ncol=1, labelspacing=2, frameon=False)
+plt.xlabel(
+    r"$\sigma$: $\rho c(Q_\mathrm{A} + Q_\mathrm{D})$(N)")
+plt.ylabel("Momentum Equation Terms (N)")
+plt.savefig(meta_data.output_dir +
+            "/cv_stats_tgp_drag_volume_source_stdev.png", format='png')
+plt.show()
+
+
+def update_ylabels_and_lim(fig):
+    if ("ylim" in item for item in documents["power stats"]):
+        ylim = next(d for i, d in enumerate(
+            documents["power stats"]) if "ylim" in d)
+        fig.set_ylim(ylim["ylim"])
+    ylabels = [format(label, '.1f') for label in fig.get_yticks()]
+    fig.set_yticklabels(ylabels)
+
+
 # Fig: Flow work at inlet face vs. driving pressure
 fig = plt.figure()
 inlet_works_vs_drive_p = fig.add_subplot(1, 1, 1)
@@ -191,6 +273,7 @@ x_axis_name = "Driving pressure work"
 handles = plot_stats(y_axis_names, x_axis_name, [
                      "-", "--", "-."], ["b", "g", "r"], True)
 apply_fig_settings(inlet_works_vs_drive_p)
+update_ylabels_and_lim(inlet_works_vs_drive_p)
 inlet_works_vs_drive_p.legend(
     handles,
     [r"$\overline{p_\mathrm{A}Q_\mathrm{A}}$",
@@ -213,6 +296,7 @@ x_axis_name = "Driving pressure work"
 handles = plot_stats(y_axis_names, x_axis_name, [
                      "-", "--", "-."], ["b", "g", "r"], True)
 apply_fig_settings(outlet_works_vs_drive_p)
+update_ylabels_and_lim(outlet_works_vs_drive_p)
 outlet_works_vs_drive_p.legend(
     handles,
     [r"$\overline{p_\mathrm{D}Q_\mathrm{D}}$",
@@ -236,6 +320,7 @@ x_axis_name = "Driving pressure work"
 handles = plot_stats(y_axis_names, x_axis_name, [
                      "-", "--", "-."], ["b", "g", "r"], True)
 apply_fig_settings(tot_works_vs_drive_p)
+update_ylabels_and_lim(tot_works_vs_drive_p)
 tot_works_vs_drive_p.legend(
     handles,
     [r"$\overline{p_\mathrm{A}Q_\mathrm{A}} - \overline{p_\mathrm{D}Q_\mathrm{D}}$",
@@ -248,22 +333,6 @@ plt.xlabel(
 plt.ylabel("Flow Work (Watts)")
 plt.savefig(meta_data.output_dir +
             "/cv_stats_total_work_decomposition.png", format='png')
-plt.show()
-
-# Fig: Efficiency vs. driving pressure
-fig = plt.figure()
-efficiency_vs_pa = fig.add_subplot(1, 1, 1)
-y_axis_names = ["Efficiency"]
-x_axis_name = "Driving pressure work"
-handles = plot_stats(y_axis_names, x_axis_name, ["-"], ["b"], False)
-apply_fig_settings(efficiency_vs_pa)
-ylabels = [format(label, '.1%') for label in efficiency_vs_pa.get_yticks()]
-efficiency_vs_pa.set_yticklabels(ylabels)
-plt.xlabel(
-    r"$\overline{p_\mathrm{A}Q_\mathrm{A}} - \overline{p_\mathrm{D}Q_\mathrm{D}}$ (Watts)")
-plt.ylabel("Laryngeal Efficiency")
-plt.savefig(meta_data.output_dir +
-            "/cv_stats_efficiency.png", format='png')
 plt.show()
 
 # Get a list of cases for legend
@@ -307,3 +376,10 @@ plt.tight_layout()
 plt.savefig(meta_data.output_dir +
             "/gap_time_all_zoomed_in.png", format='png')
 plt.show()
+
+# Compute the limit for laryngeal efficiency
+slope_input = np.polyfit(
+    data_collection["Driving pressure work_mean"], data_collection["Pressure input_mean"], 1)
+slope_output = np.polyfit(
+    data_collection["Driving pressure work_mean"], data_collection["Acoustic output_mean"], 1)
+print(f"Efficiency limit is {-slope_output[0]/slope_input[0]:2%}")
