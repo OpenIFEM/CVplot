@@ -141,7 +141,7 @@ def main():
     draw_open_close(entrance_decomp_b)
     entrance_decomp_b.legend(
         [r"$\langle p_\mathrm{A} \rangle$", r"$2\langle p_\mathrm{A}^+ \rangle$",
-         r"$-\frac{\rho c}{S}\langle Q_\mathrm{A}^- \rangle$"],
+         r"$-\frac{\rho c}{S_\mathrm{VT}}\langle Q_\mathrm{A} \rangle$"],
         bbox_to_anchor=(1.0, 0.5),
         loc='center left', ncol=1, labelspacing=2, frameon=False)
     plt.savefig(meta_data.output_dir +
@@ -172,7 +172,7 @@ def main():
     draw_open_close(exit_decomp_b)
     exit_decomp_b.legend(
         [r"$\langle p_\mathrm{D} \rangle$", r"$2\langle p_\mathrm{D}^- \rangle$",
-         r"$-\frac{\rho c}{S}\langle Q_\mathrm{D}^- \rangle$"],
+         r"$-\frac{\rho c}{S_\mathrm{VT}}\langle Q_\mathrm{D} \rangle$"],
         bbox_to_anchor=(1.0, 0.5),
         loc='center left', ncol=1, labelspacing=2, frameon=False)
     plt.savefig(meta_data.output_dir +

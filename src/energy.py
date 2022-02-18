@@ -243,7 +243,7 @@ def main():
     input_decomp_plot.legend(
         [r"$\langle{p}_\mathrm{A}\rangle\langle{Q}_\mathrm{A}\rangle-\langle{p}_\mathrm{D}\rangle\langle{Q}_\mathrm{D}\rangle$",
          r"$2(\langle{p}_\mathrm{A}^+\rangle\langle{Q}_\mathrm{A}\rangle-\langle{p}_\mathrm{D}^-\rangle\langle{Q}_\mathrm{D}\rangle)$",
-         r"$-\frac{\rho c}{S}\langle{Q}_\mathrm{A}\rangle^2-\frac{\rho c}{S}\langle{Q}_\mathrm{D}\rangle^2$"],
+         r"$-\frac{\rho c}{S_\mathrm{VT}}\langle{Q}_\mathrm{A}\rangle^2-\frac{\rho c}{S_\mathrm{VT}}\langle{Q}_\mathrm{D}\rangle^2$"],
         bbox_to_anchor=(1.0, 0.5),
         loc='center left', ncol=1, labelspacing=2, frameon=False)
     # Save the plot
@@ -266,7 +266,7 @@ def main():
     entrance_decomp_plot.legend(
         [r"$\langle{p}_\mathrm{A}\rangle\langle{Q}_\mathrm{A}\rangle$",
          r"$2(\langle{p}_\mathrm{A}^+\rangle\langle{Q}_\mathrm{A}\rangle$",
-         r"$-\frac{\rho c}{S}\langle{Q}_\mathrm{A}\rangle^2$"],
+         r"$-\frac{\rho c}{S_\mathrm{VT}}\langle{Q}_\mathrm{A}\rangle^2$"],
         bbox_to_anchor=(1.0, 0.5),
         loc='center left', ncol=1, labelspacing=2, frameon=False)
     # Save the plot
@@ -289,7 +289,7 @@ def main():
     exit_decomp_plot.legend(
         [r"$\langle{p}_\mathrm{D}\rangle\langle{Q}_\mathrm{D}\rangle$",
          r"$2(\langle{p}_\mathrm{D}^-\rangle\langle{Q}_\mathrm{D}\rangle$",
-         r"$-\frac{\rho c}{S}\langle{Q}_\mathrm{D}\rangle^2$"],
+         r"$-\frac{\rho c}{S_\mathrm{VT}}\langle{Q}_\mathrm{D}\rangle^2$"],
         bbox_to_anchor=(1.0, 0.5),
         loc='center left', ncol=1, labelspacing=2, frameon=False)
     # Save the plot
@@ -313,11 +313,11 @@ def main():
     draw_open_close(energy_plot)
     update_xlabels(energy_plot)
     energy_legend = [r"$2(\langle{p}_\mathrm{A}^+\rangle\langle{Q}_\mathrm{A}\rangle-\langle{p}_\mathrm{D}^-\rangle\langle{Q}_\mathrm{D}\rangle)$",
-                     r"$-\frac{\rho c}{S}\langle{Q}_\mathrm{A}\rangle^2$", r"$-\frac{\rho c}{S}\langle{Q}_\mathrm{D}\rangle^2$",
+                     r"$-\frac{\rho c}{S_\mathrm{VT}}\langle{Q}_\mathrm{A}\rangle^2$", r"$-\frac{\rho c}{S_\mathrm{VT}}\langle{Q}_\mathrm{D}\rangle^2$",
                      r"$-\dot{W}_\mathrm{VF}$", r"$-\dot{KE}_\mathrm{V}$", r"$-\dot{KE}_\mathrm{S}$", r"$-\dot{KE}_{VC}$",
                      r"$-\dot{W}_\mathrm{\nu}$", r"$\dot{PE}$", r"$-\dot{W}_\mathrm{f}$", r"$-\dot{W}_\mathrm{t}$"]
     energy_plot.legend(energy_legend, bbox_to_anchor=(1.0, 0.5),
-                       loc="center left", ncol=1, frameon=False)
+                       loc="center left", ncol=1, labelspacing=0.55, frameon=False)
     # Save the plot
     plt.savefig(meta_data.output_dir +
                 "/cv_energy_overall.png", format='png')

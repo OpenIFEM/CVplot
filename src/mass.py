@@ -167,7 +167,7 @@ def main():
         r"Volume Flow Rate ($cm^3/s$)", fontsize=label_size)
     volume_plot.legend(
         [r"$\langle Q_\mathrm{A} \rangle$", r"$\langle Q_\mathrm{D} \rangle$",
-         r"$\frac{dm_\mathrm{CV}}{dt}$"],
+         r"$\frac{dV}{dt}$"],
         fontsize=legend_size, bbox_to_anchor=(1.0, 0.5),
         loc='center left', ncol=1, frameon=False)
     # Save the plot

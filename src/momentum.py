@@ -31,8 +31,8 @@ def create_momentum_frame(cv_data):
     cv_momentum["2P_A^+S"] = (cv_momentum["Inlet pressure force"] +
                               cv_data["Inlet volume flow"] * rho * c)
     cv_momentum["-P_DS"] = -cv_momentum["Outlet pressure force"]
-    cv_momentum["2P_D^-S"] = -(cv_data["Outlet pressure force"] -
-                               cv_data["Outlet volume flow"] * rho * c)
+    cv_momentum["2P_D^-S"] = (cv_data["Outlet pressure force"] -
+                              cv_data["Outlet volume flow"] * rho * c)
     cv_momentum["Built-up pressure force"] = cv_momentum["2P_A^+S"] - \
         cv_momentum["2P_D^-S"]
     # Drag
