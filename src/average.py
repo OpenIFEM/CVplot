@@ -346,7 +346,7 @@ gap_time_all_zoomed_out.legend(case_inputs,
                                bbox_to_anchor=(1.0, 0.5),
                                loc='center left', ncol=1, frameon=False)
 gap_time_all_zoomed_out.set_xlim([0.0, 0.15])
-gap_time_all_zoomed_out.set_ylim([-0.08, 1.2])
+gap_time_all_zoomed_out.set_ylim([-0.08, 1.3])
 gap_time_all_zoomed_out.set_xlabel("Time (s)", fontsize=label_size)
 gap_time_all_zoomed_out.set_ylabel("h (mm)", fontsize=label_size)
 # Save the plot
@@ -367,7 +367,7 @@ gap_time_all_zoomed_in.legend(case_inputs,
                               labelspacing=2, frameon=False)
 # gap_time_all_zoomed_in.set_xlim(meta_data.timespan)
 gap_time_all_zoomed_in.set_xlim(0.135, 0.15)
-gap_time_all_zoomed_in.set_ylim([-0.08, 1.2])
+gap_time_all_zoomed_in.set_ylim([-0.08, 1.3])
 gap_time_all_zoomed_in.set_xlabel("Time (s)", fontsize=label_size)
 gap_time_all_zoomed_in.set_ylabel("h (mm)", fontsize=label_size)
 # Save the plot
