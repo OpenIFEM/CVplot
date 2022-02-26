@@ -66,8 +66,7 @@ for lung_pressure, path in meta_data.cases.items():
     # Additional terms
     cv_merged["Inlet pressure work"] = cv_data["Inlet pressure work"] * to_watt
     cv_merged["Outlet pressure work"] = cv_data["Outlet pressure work"] * to_watt
-    cv_merged["P_A^+Q_A"] = cv_merged["2P_A^+Q_A"] / 2
-    cv_merged["P_D^-Q_D"] = cv_merged["2P_D^-Q_D"] / 2
+    cv_merged["-2P_D^-Q_D"] = -cv_merged["2P_D^-Q_D"]
     cv_merged["Q_A+Q_D"] = cv_merged["Radiated pressure"] / to_pa * S / rho / c
     for label, content in cv_merged.items():
         # Skip time and duplicate
@@ -190,13 +189,13 @@ plt.show()
 fig = plt.figure()
 efficiency_vs_pa = fig.add_subplot(1, 1, 1)
 y_axis_names = ["Efficiency"]
-x_axis_name = "Driving pressure work"
+x_axis_name = "P_A^+"
 handles = plot_stats(y_axis_names, x_axis_name, ["-"], ["b"], False)
 apply_fig_settings(efficiency_vs_pa)
 ylabels = [format(label, '.1%') for label in efficiency_vs_pa.get_yticks()]
 efficiency_vs_pa.set_yticklabels(ylabels)
 plt.xlabel(
-    r"$\overline{p_\mathrm{A}Q_\mathrm{A}} - \overline{p_\mathrm{D}Q_\mathrm{D}}$ (Watts)")
+    r"$\overline{p_\mathrm{L}}$ (Pa)")
 plt.ylabel("Laryngeal Efficiency")
 plt.savefig(meta_data.output_dir +
             "/cv_stats_efficiency.png", format='png')
@@ -268,8 +267,8 @@ def update_ylabels_and_lim(fig):
 # Fig: Flow work at inlet face vs. driving pressure
 fig = plt.figure()
 inlet_works_vs_drive_p = fig.add_subplot(1, 1, 1)
-y_axis_names = ["Inlet pressure work", "P_A^+Q_A", "Acoustic loss"]
-x_axis_name = "Driving pressure work"
+y_axis_names = ["Inlet pressure work", "2P_A^+Q_A", "Acoustic loss"]
+x_axis_name = "P_A^+"
 handles = plot_stats(y_axis_names, x_axis_name, [
                      "-", "--", "-."], ["b", "g", "r"], True)
 apply_fig_settings(inlet_works_vs_drive_p)
@@ -277,12 +276,12 @@ update_ylabels_and_lim(inlet_works_vs_drive_p)
 inlet_works_vs_drive_p.legend(
     handles,
     [r"$\overline{p_\mathrm{A}Q_\mathrm{A}}$",
-     r"$\overline{p_\mathrm{A}^+Q_\mathrm{A}}$",
+     r"$2\overline{p_\mathrm{A}^+Q_\mathrm{A}}$",
      r"$-\frac{\rho c}{S_\mathrm{VT}}\overline{Q_\mathrm{A}^2}$"],
     bbox_to_anchor=(1.0, 0.5),
     loc='center left', ncol=1, labelspacing=2, frameon=False)
 plt.xlabel(
-    r"$\overline{p_\mathrm{A}Q_\mathrm{A}} - \overline{p_\mathrm{D}Q_\mathrm{D}}$ (Watts)")
+    r"$\overline{p_\mathrm{L}}$ (Pa)")
 plt.ylabel("Flow Work (Watts)")
 plt.savefig(meta_data.output_dir +
             "/cv_stats_inlet_work_decomposition.png", format='png')
@@ -291,8 +290,8 @@ plt.show()
 # Fig: Flow work at outlet face vs. driving pressure
 fig = plt.figure()
 outlet_works_vs_drive_p = fig.add_subplot(1, 1, 1)
-y_axis_names = ["Outlet pressure work", "P_D^-Q_D", "Acoustic output"]
-x_axis_name = "Driving pressure work"
+y_axis_names = ["Outlet pressure work", "2P_D^-Q_D", "Acoustic output"]
+x_axis_name = "P_A^+"
 handles = plot_stats(y_axis_names, x_axis_name, [
                      "-", "--", "-."], ["b", "g", "r"], True)
 apply_fig_settings(outlet_works_vs_drive_p)
@@ -300,12 +299,12 @@ update_ylabels_and_lim(outlet_works_vs_drive_p)
 outlet_works_vs_drive_p.legend(
     handles,
     [r"$\overline{p_\mathrm{D}Q_\mathrm{D}}$",
-     r"$\overline{p_\mathrm{D}^-Q_\mathrm{D}}$",
+     r"$-2\overline{p_\mathrm{D}^-Q_\mathrm{D}}$",
      r"$-\frac{\rho c}{S_\mathrm{VT}}\overline{Q_\mathrm{D}^2}$"],
     bbox_to_anchor=(1.0, 0.5),
     loc='center left', ncol=1, labelspacing=2, frameon=False)
 plt.xlabel(
-    r"$\overline{p_\mathrm{A}Q_\mathrm{A}} - \overline{p_\mathrm{D}Q_\mathrm{D}}$ (Watts)")
+    r"$\overline{p_\mathrm{L}}$ (Pa)")
 plt.ylabel("Flow Work (Watts)")
 plt.savefig(meta_data.output_dir +
             "/cv_stats_outlet_work_decomposition.png", format='png')
@@ -316,7 +315,7 @@ fig = plt.figure()
 tot_works_vs_drive_p = fig.add_subplot(1, 1, 1)
 y_axis_names = ["Driving pressure work",
                 "Pressure input", "Net acoustic power flow"]
-x_axis_name = "Driving pressure work"
+x_axis_name = "P_A^+"
 handles = plot_stats(y_axis_names, x_axis_name, [
                      "-", "--", "-."], ["b", "g", "r"], True)
 apply_fig_settings(tot_works_vs_drive_p)
@@ -324,12 +323,12 @@ update_ylabels_and_lim(tot_works_vs_drive_p)
 tot_works_vs_drive_p.legend(
     handles,
     [r"$\overline{p_\mathrm{A}Q_\mathrm{A}} - \overline{p_\mathrm{D}Q_\mathrm{D}}$",
-     r"$\overline{p_\mathrm{A}^+Q_\mathrm{A}} - \overline{p_\mathrm{D}^-Q_\mathrm{D}}$",
+     r"$2(\overline{p_\mathrm{A}^+Q_\mathrm{A}} - \overline{p_\mathrm{D}^-Q_\mathrm{D}})$",
      r"$-\frac{\rho c}{S_\mathrm{VT}}(\overline{Q_\mathrm{A}^2} + \overline{Q_\mathrm{D}^2})$"],
     bbox_to_anchor=(1.0, 0.5),
     loc='center left', ncol=1, labelspacing=2, frameon=False)
 plt.xlabel(
-    r"$\overline{p_\mathrm{A}Q_\mathrm{A}} - \overline{p_\mathrm{D}Q_\mathrm{D}}$ (Watts)")
+    r"$\overline{p_\mathrm{L}}$ (Pa)")
 plt.ylabel("Flow Work (Watts)")
 plt.savefig(meta_data.output_dir +
             "/cv_stats_total_work_decomposition.png", format='png')
