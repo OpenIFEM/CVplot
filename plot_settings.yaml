@@ -1,15 +1,21 @@
-# No turbulence model
-# opening and closure from volume flow
-# turbulence model
-time span: [0.1430, 0.1480]
+time span: [0.141919, 0.150689]
 
-open phase: 0.065
+open phase: 1.00
 
-close phase: 0.876
+close phase: 1.83578
 
-output directory: figures
+period: 2
 
-legend: false
+output directory: ./figures
+
+legend: False 
+
+# Figure size and position
+size:
+  height: 10
+  width: 22
+  left: 0.2
+  right: 0.8
 
 energy:
   - Rate KE
@@ -17,8 +23,24 @@ energy:
   - Rate dissipation
   - Rate compression work
   - Rate friction work
-  - Pressure drive
+  - Driving pressure work
   - Rate VF work
-  - Stabilization
   - Rate turbulent momentum transfer
-  - ylim: [-0.15, 0.15]
+  - ylim: [-0.21, 0.28]
+
+pressure:
+  - ylim: [-850.0, 1200.0]
+
+momentum:
+  - ylim: [-0.18, 0.25]
+
+power stats:
+  - ylim: [-0.35, 0.48]
+
+# Average behavior analysis. Format is input pressure: directory
+average:
+  800: /home/feimi/Development/CVplot/Cases/final_results/turb_0p8k/
+  900: /home/feimi/Development/CVplot/Cases/final_results/turb_0p9k/
+  1000: /home/feimi/Development/CVplot/Cases/final_results/turb_1k/
+  1200: /home/feimi/Development/CVplot/Cases/final_results/turb_1p2k/
+  1400: /home/feimi/Development/CVplot/Cases/final_results/turb_1p4k/
