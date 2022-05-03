@@ -6,4 +6,5 @@ A visualization tool for [OpenIFEM](https://github.com/OpenIFEM/OpenIFEM) FSI mo
  - Momentum equation
  - Mechanical energy balance
  - Generalized Bernoulli equation
-
+ - Gap history
+ - VF surface motion animation
