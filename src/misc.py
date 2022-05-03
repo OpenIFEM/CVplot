@@ -36,8 +36,10 @@ on_fly_data["Max velocity"] = on_fly_data["Max velocity"] * to_mps
 on_fly_data["Probed pressure"] = on_fly_data["Probed pressure"] * to_pa
 
 # Read gap data (if exist)
-gap_data = pd.read_csv(meta_data.working_dir + "/gap.csv", header=0)
+gap_data = pd.read_csv(meta_data.working_dir + "/gap_new.csv", header=0)
 gap_data["Gap"] = gap_data["Gap"] * to_mm
+gap_data["Superior"] = gap_data["Superior"] * to_mm
+gap_data["Inferior"] = gap_data["Inferior"] * to_mm
 gap_data["Normalized time"] = (
     gap_data["Time"] - meta_data.timespan[0])/T_cycle
 
@@ -64,6 +66,7 @@ resonance = np.log(np.abs(power))
 resonance = savgol_filter(resonance, 701, 3)
 resonance = savgol_filter(resonance, 1001, 3)
 resonance = savgol_filter(resonance, 1401, 3)
+resonance = savgol_filter(resonance, 2001, 3)
 resonance = np.exp(resonance)
 
 # Smooth
@@ -127,13 +130,16 @@ plt.show()
 
 gap_time = gap_data.plot(
     x="Normalized time",
-    y=["Gap"],
-    style=['-'],
-    color=['b'], markevery=20, lw=5)
+    y=["Superior", "Inferior", "Gap"],
+    style=['--', '-.', '-'],
+    color=['g', 'b', 'k'], markevery=20, lw=5)
 apply_fig_settings(gap_time)
 draw_open_close(gap_time)
 gap_time.set_xlabel("t/T", fontsize=axis_label_size)
 gap_time.set_ylabel("Gap width (mm)", fontsize=axis_label_size)
+gap_time.legend(["Superior", "Inferior", "Minimum"],
+                bbox_to_anchor=(1.0, 0.5), fontsize=label_size - 4,
+                loc='center left', ncol=1, labelspacing=2, frameon=False)
 # Save the plot
 plt.savefig(meta_data.output_dir + "/gap_time_domaion.png", format='png')
 plt.show()
@@ -154,6 +160,8 @@ plt.savefig(meta_data.output_dir +
 plt.show()
 
 # All time gap history
+plt.rcParams["figure.subplot.left"] = 0.08
+plt.rcParams["figure.subplot.right"] = 0.98
 gap_time_full = gap_data.plot(
     x="Time",
     y=["Gap"],
@@ -168,12 +176,35 @@ gap_time_full.set_ylim([-0.08, 1.0])
 # Draw span of interest
 gap_time_full.set_ylim(gap_time_full.get_ylim())
 plt.plot([meta_data.timespan[0], meta_data.timespan[0]],
-         gap_time_full.get_ylim(), 'r--', linewidth=4)
+         gap_time_full.get_ylim(), 'r-', linewidth=4)
 plt.plot([meta_data.timespan[1], meta_data.timespan[1]],
-         gap_time_full.get_ylim(), 'r--', linewidth=4)
+         gap_time_full.get_ylim(), 'r-', linewidth=4)
 gap_time_full.set_xlabel("Time (s)", fontsize=axis_label_size)
 gap_time_full.set_ylabel("h (mm)", fontsize=axis_label_size)
 # Save the plot
-plt.tight_layout()
 plt.savefig(meta_data.output_dir + "/gap_time_full.png", format='png')
+plt.show()
+
+xtip_time_full = gap_data.plot(
+    x="Time",
+    y=["Tip_X"],
+    style=['-'],
+    color=['b'], lw=3, figsize=(width*1.2, height*0.5))
+plt.locator_params(axis='y', nbins=8)
+xtip_time_full.tick_params(direction='in', length=20,
+                           width=2, top=True, right=True)
+xtip_time_full.get_legend().remove()
+xtip_time_full.set_xlim([0.0, 0.24])
+xtip_time_full.set_ylim([13.91, 14.20])
+# Draw span of interest
+xtip_time_full.set_ylim(xtip_time_full.get_ylim())
+plt.plot([meta_data.timespan[0], meta_data.timespan[0]],
+         xtip_time_full.get_ylim(), 'r-', linewidth=4)
+plt.plot([meta_data.timespan[1], meta_data.timespan[1]],
+         xtip_time_full.get_ylim(), 'r-', linewidth=4)
+xtip_time_full.set_xlabel("Time (s)", fontsize=axis_label_size)
+xtip_time_full.set_ylabel("X (cm)", fontsize=axis_label_size)
+# Save the plot
+# plt.tight_layout()
+plt.savefig(meta_data.output_dir + "/Tip_X_time_full.png", format='png')
 plt.show()
