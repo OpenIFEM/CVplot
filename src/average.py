@@ -1,8 +1,4 @@
-from distutils.log import error
 import sys
-from unittest import case
-from xmlrpc.client import Boolean
-from click import style
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
